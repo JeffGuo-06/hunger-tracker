@@ -1,9 +1,10 @@
 import { View, Text, StyleSheet } from "react-native";
 
-export default function Settings() {
+
+export default function Create() {
   return (
     <View style={styles.container}>
-      <Text>These are your settings</Text>
+        <Text>This is the feed</Text>
     </View>
   );
 }
