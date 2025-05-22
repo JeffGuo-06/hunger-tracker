@@ -5,13 +5,22 @@ import { SafeAreaView } from "react-native";
 
 export default function TabLayout() {
   return (
-    <Tabs screenOptions={{ tabBarActiveTintColor: "#023047" }}>
+    <Tabs screenOptions={{ tabBarActiveTintColor: "#023047", headerShown: false }}>
       <Tabs.Screen
         name="index"
         options={{
           title: "Home",
           tabBarIcon: ({ color }) => (
             <FontAwesome size={28} name="home" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="feed"
+        options={{
+          title: "feed",
+          tabBarIcon: ({ color }) => (
+            <FontAwesome size={24} name="search" color={color} />
           ),
         }}
       />
@@ -25,23 +34,24 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="friends"
         options={{
-          title: "Profile",
+          title: "Friends",
           tabBarIcon: ({ color }) => (
-            <FontAwesome size={28} name="user-circle" color={color} />
+            <FontAwesome5 size={20} name="user-friends" color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="feed"
+        name="profile"
         options={{
-          title: "feed",
+          title: "Profile",
           tabBarIcon: ({ color }) => (
-            <FontAwesome size={28} name="search" color={color} />
+            <FontAwesome size={20} name="user-circle" color={color} />
           ),
         }}
       />
+      
     </Tabs>
   );
 }

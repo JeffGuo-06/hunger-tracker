@@ -13,9 +13,7 @@ export default function Camera() {
   const [cameraFacing, setCameraFacing] = useState<CameraType>("back");
   const [cameraFlash, setCameraFlash] = useState<FlashMode>("off");
   const [permission, requestPermission] = useCameraPermissions();
-  const [photo, setPhoto] = React.useState<string>(
-    "https://picsum.photos/seed/696/3000/2000"
-  );
+  const [photo, setPhoto] = React.useState<string | null>(null);
   const cameraRef = React.useRef<CameraView>(null);
 
   async function handleTakePhoto() {
