@@ -4,12 +4,22 @@
     "slug": "HungerTracker",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/muckd-icon-prototype1.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jeffguo.HungerTracker",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationUsageDescription": "Enable location access so your friends can see when you're nearby.",
+        "NSLocationWhenInUseUsageDescription": "Enable location access so your friends can see when you're nearby.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Enable location access so your friends can see when you're nearby.",
+        "NSCameraUsageDescription": "Enable camera access so you can take photos of your food.",
+        "NSPhotoLibraryUsageDescription": "Enable photo library access so you can select photos of your food.",
+        "NSPhotoLibraryAddUsageDescription": "Enable photo library access so you can save photos of your food."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -37,6 +47,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "ec0bdecb-1101-433b-b729-b89ab1c960cd"
+      }
+    },
+    "owner": "jeffguo"
   }
 }

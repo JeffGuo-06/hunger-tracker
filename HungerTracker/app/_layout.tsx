@@ -1,7 +1,11 @@
-import { Stack } from "expo-router/stack";
+import React from "react";
+import { Stack } from "expo-router";
 import "react-native-gesture-handler";
 import "../global.css";
 import { useFonts } from "expo-font";
+
+// Set this to true when you want to re-enable authentication
+const REQUIRE_AUTH = false;
 
 export default function Layout() {
   const [fontsLoaded] = useFonts({
@@ -16,9 +20,21 @@ export default function Layout() {
     "Poppins-Black": require("../assets/fonts/Poppins-Black.ttf"),
   });
 
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    <Stack screenOptions={{ headerShown: false }}>
+      {!REQUIRE_AUTH ? (
+        <Stack.Screen name="(tabs)" />
+      ) : (
+        <>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(tabs)" />
+        </>
+      )}
     </Stack>
   );
 }
