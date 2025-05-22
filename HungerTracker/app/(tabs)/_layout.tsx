@@ -2,10 +2,11 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { Tabs } from "expo-router";
 import { SafeAreaView } from "react-native";
+import { colors } from "../theme";
 
 export default function TabLayout() {
   return (
-    <Tabs screenOptions={{ tabBarActiveTintColor: "#023047", headerShown: false }}>
+    <Tabs screenOptions={{ tabBarStyle: { backgroundColor: colors.bg[1], borderTopColor: colors.bg[2] }, tabBarActiveTintColor: colors.bg[4], tabBarInactiveTintColor: colors.text[2], headerShown: false }}>
       <Tabs.Screen
         name="index"
         options={{
@@ -27,7 +28,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="eat"
         options={{
-          title: "Eat",
+          title: "Muck",
           tabBarIcon: ({ color }) => (
             <FontAwesome5 size={28} name="hamburger" color={color} />
           ),

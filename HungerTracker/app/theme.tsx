@@ -1,9 +1,10 @@
 export const colors = {
   text: {
-    p: "#FFFFFF",      // Text Primary
-    s: "#D9D9D9",    // Text Secondary
+    1: "#FFFFFF",      // Text Primary
+    2: "#AEAEAE",    // Text Secondary\
+    3: "#707070"
   },
-  color: {
+  acc: {
     p1: "#9750EE",      // Color Primary1
     p2: "#A78BFA",      // Color Primary2
     s1: "#D732A8",    // Color Secondary1
@@ -22,7 +23,7 @@ export const spacing = {
     md: 16,
     lg: 24,
     xl: 32,
-  };
+};
   
 export const fontSizes = {
     small: 14,

@@ -1,4 +1,5 @@
 import React from "react";
+import { colors, spacing, fontSizes } from "../theme";
 import {
   View,
   Text,
@@ -8,19 +9,17 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, spacing, fontSizes } from "../theme";
 
 export default function Profile() {
   // Example user data - in a real app, this would come from your backend
   const user = {
-    name: "John Doe",
-    username: "@johndoe",
-    bio: "Food lover and adventure seeker 🍔🌮",
+    name: "Jeff Guo",
+    username: "@jeffguo",
+    bio: "Food lover and adventure  🍔🌮",
     location: "San Francisco, CA",
     stats: {
-      posts: 42,
-      followers: 1234,
-      following: 567,
+      mucks: 42,
+      friends: 72,
     },
   };
 
@@ -29,21 +28,21 @@ export default function Profile() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.settingsButton}>
-          <Ionicons name="settings-outline" size={24} color={colors.color.primary1} />
+          <Ionicons name="settings-outline" size={24} color="#023047" />
         </TouchableOpacity>
       </View>
 
       {/* Profile Info */}
       <View style={styles.profileInfo}>
         <Image
-          source={{ uri: "https://i.pravatar.cc/300" }}
+          source={require('../../assets/images/placeholder/jeff-profile.jpg')}
           style={styles.profileImage}
         />
         <Text style={styles.name}>{user.name}</Text>
         <Text style={styles.username}>{user.username}</Text>
         <Text style={styles.bio}>{user.bio}</Text>
         <View style={styles.locationContainer}>
-          <Ionicons name="location-outline" size={16} color={colors.text.secondary} />
+          <Ionicons name="location-outline" size={16} color="#666" />
           <Text style={styles.location}>{user.location}</Text>
         </View>
       </View>
@@ -51,27 +50,23 @@ export default function Profile() {
       {/* Stats */}
       <View style={styles.statsContainer}>
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{user.stats.posts}</Text>
-          <Text style={styles.statLabel}>Posts</Text>
+          <Text style={styles.statNumber}>{user.stats.mucks}</Text>
+          <Text style={styles.statLabel}>Mucks</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{user.stats.followers}</Text>
-          <Text style={styles.statLabel}>Followers</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{user.stats.following}</Text>
-          <Text style={styles.statLabel}>Following</Text>
+          <Text style={styles.statNumber}>{user.stats.friends}</Text>
+          <Text style={styles.statLabel}>Friends</Text>
         </View>
       </View>
 
       {/* Action Buttons */}
       <View style={styles.actionButtons}>
-        <TouchableOpacity style={styles.editButton}>
+        {/* <TouchableOpacity style={styles.editButton}>
           <Text style={styles.editButtonText}>Edit Profile</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.shareButton}>
-          <Ionicons name="share-outline" size={20} color={colors.color.primary1} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
+        {/* <TouchableOpacity style={styles.shareButton}>
+          <Ionicons name="share-outline" size={20} color="#023047" />
+        </TouchableOpacity> */}
       </View>
 
       {/* Recent Activity */}
@@ -79,21 +74,21 @@ export default function Profile() {
         <Text style={styles.sectionTitle}>Recent Activity</Text>
         <View style={styles.activityList}>
           <View style={styles.activityItem}>
-            <Ionicons name="restaurant-outline" size={24} color={colors.color.primary1} />
+            <Ionicons name="restaurant-outline" size={24} color="#023047" />
             <View style={styles.activityInfo}>
               <Text style={styles.activityTitle}>Checked in at Burger Palace</Text>
               <Text style={styles.activityTime}>2 hours ago</Text>
             </View>
           </View>
           <View style={styles.activityItem}>
-            <Ionicons name="heart-outline" size={24} color={colors.color.primary1} />
+            <Ionicons name="heart-outline" size={24} color="#023047" />
             <View style={styles.activityInfo}>
               <Text style={styles.activityTitle}>Liked Sarah's post</Text>
               <Text style={styles.activityTime}>5 hours ago</Text>
             </View>
           </View>
           <View style={styles.activityItem}>
-            <Ionicons name="star-outline" size={24} color={colors.color.primary1} />
+            <Ionicons name="star-outline" size={24} color="#023047" />
             <View style={styles.activityInfo}>
               <Text style={styles.activityTitle}>Rated Pizza Place 5 stars</Text>
               <Text style={styles.activityTime}>Yesterday</Text>
@@ -108,125 +103,125 @@ export default function Profile() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background[4],
+    backgroundColor: colors.bg[2],
   },
   header: {
-    padding: spacing.md,
+    padding: 16,
     flexDirection: "row",
     justifyContent: "flex-end",
   },
   settingsButton: {
-    padding: spacing.sm,
+    padding: 8,
   },
   profileInfo: {
     alignItems: "center",
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: 20,
   },
   profileImage: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    marginBottom: spacing.md,
+    marginBottom: 16,
   },
   name: {
-    fontSize: fontSizes.xlarge,
+    fontSize: 24,
     fontWeight: "bold",
-    color: colors.color.primary1,
-    marginBottom: spacing.xs,
+    color: colors.text[1],
+    marginBottom: 4,
   },
   username: {
-    fontSize: fontSizes.medium,
-    color: colors.text.secondary,
-    marginBottom: spacing.sm,
+    fontSize: 16,
+    color: colors.text[2],
+    marginBottom: 8,
   },
   bio: {
-    fontSize: fontSizes.medium,
-    color: colors.text.primary,
+    fontSize: 16,
+    color: colors.text[1],
     textAlign: "center",
-    marginBottom: spacing.sm,
+    marginBottom: 8,
   },
   locationContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: spacing.md,
+    marginBottom: 16,
   },
   location: {
-    fontSize: fontSizes.small,
-    color: colors.text.secondary,
-    marginLeft: spacing.xs,
+    fontSize: 14,
+    color: colors.text[3],
+    marginLeft: 4,
   },
   statsContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
-    paddingVertical: spacing.md,
-    borderTopWidth: 1,
+    paddingVertical: 16,
+    borderTopWidth: 0,
     borderBottomWidth: 1,
-    borderColor: colors.background[3],
+    borderColor: colors.bg[3],
   },
   statItem: {
     alignItems: "center",
   },
   statNumber: {
-    fontSize: fontSizes.large,
+    fontSize: 20,
     fontWeight: "bold",
-    color: colors.color.primary1,
+    color: colors.text[1],
   },
   statLabel: {
-    fontSize: fontSizes.small,
-    color: colors.text.secondary,
-    marginTop: spacing.xs,
+    fontSize: 14,
+    color: colors.text[2],
+    marginTop: 4,
   },
   actionButtons: {
     flexDirection: "row",
-    padding: spacing.md,
-    gap: spacing.sm,
+    padding: 16,
+    gap: 12,
   },
   editButton: {
     flex: 1,
-    backgroundColor: colors.color.primary1,
-    padding: spacing.sm,
+    backgroundColor: colors.acc.p1,
+    padding: 12,
     borderRadius: 8,
     alignItems: "center",
   },
   editButtonText: {
-    color: colors.text.primary,
-    fontSize: fontSizes.medium,
+    color: colors.text[1],
+    fontSize: 16,
     fontWeight: "600",
   },
   shareButton: {
-    backgroundColor: colors.background[3],
-    padding: spacing.sm,
+    backgroundColor: colors.bg[3],
+    padding: 12,
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
   },
   section: {
-    padding: spacing.md,
+    padding: 16,
   },
   sectionTitle: {
-    fontSize: fontSizes.large,
+    fontSize: 18,
     fontWeight: "600",
-    color: colors.color.primary1,
-    marginBottom: spacing.md,
+    color: colors.text[1],
+    marginBottom: 16,
   },
   activityList: {
-    gap: spacing.md,
+    gap: 16,
   },
   activityItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.sm,
+    gap: 12,
   },
   activityInfo: {
     flex: 1,
   },
   activityTitle: {
-    fontSize: fontSizes.medium,
-    color: colors.text.primary,
+    fontSize: 16,
+    color: colors.text[1],
   },
   activityTime: {
-    fontSize: fontSizes.small,
-    color: colors.text.secondary,
+    fontSize: 14,
+    color: colors.text[2],
     marginTop: 2,
   },
 });

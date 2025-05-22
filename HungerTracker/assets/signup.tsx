@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Link, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { colors, spacing, fontSizes } from "./theme";
 
 interface FormData {
   email: string;

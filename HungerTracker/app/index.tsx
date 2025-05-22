@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { colors, spacing, fontSizes } from "./theme";
 
 export default function HeroPage() {
   return (
@@ -39,7 +40,7 @@ export default function HeroPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.bg[1],
     padding: 20,
   },
   heroSection: {
@@ -56,13 +57,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.text[1],
     marginBottom: 16,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 18,
-    color: '#666',
+    color: colors.text[2],
     textAlign: 'center',
     paddingHorizontal: 20,
     lineHeight: 24,
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   primaryButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.acc.p1,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -88,10 +89,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: colors.acc.p1,
   },
   secondaryButtonText: {
-    color: '#007AFF',
+    color: colors.acc.p1,
     fontSize: 18,
     fontWeight: '600',
   },
