@@ -5,9 +5,9 @@ export const colors = {
     3: "#707070"
   },
   acc: {
-    p1: "#9750EE",      // Color Primary1
-    p2: "#A78BFA",      // Color Primary2
-    s1: "#D732A8",    // Color Secondary1
+    p1: "#FF8D4D", // Orange      
+    p2: "#A78BFA", // Purple     
+    s1: "#D732A8", // Pink      
   },
   bg: {
     1: "#0F0F0F",    // Background 1

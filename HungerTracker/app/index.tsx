@@ -1,7 +1,8 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { colors, spacing, fontSizes } from "./theme";
+import { colors } from "./theme";
+import HeroCarousel from './components/HeroCarousel';
 
 export default function HeroPage() {
   return (
@@ -10,24 +11,18 @@ export default function HeroPage() {
       
       {/* Hero Section */}
       <View style={styles.heroSection}>
-        <Image 
-          source={require('../assets/images/muckd-icon-prototype1.png')} 
-          style={styles.heroImage}
-          resizeMode="contain"
-        />
-        <Text style={styles.title}>Muckd</Text>
-        <Text style={styles.subtitle}>Track your meals, share with friends, and discover new food spots together.</Text>
+        <HeroCarousel />
       </View>
 
       {/* CTA Buttons */}
       <View style={styles.buttonContainer}>
-        <Link href="/(auth)/signup" asChild>
+        <Link href="/(auth)/signup" push asChild>
           <TouchableOpacity style={styles.primaryButton}>
             <Text style={styles.primaryButtonText}>Get Started</Text>
           </TouchableOpacity>
         </Link>
         
-        <Link href="/(auth)/login" asChild>
+        <Link href="/(auth)/login" push asChild>
           <TouchableOpacity style={styles.secondaryButton}>
             <Text style={styles.secondaryButtonText}>I already have an account</Text>
           </TouchableOpacity>
@@ -45,28 +40,7 @@ const styles = StyleSheet.create({
   },
   heroSection: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 60,
-  },
-  heroImage: {
-    width: '80%',
-    height: 300,
-    marginBottom: 30,
-  },
-  title: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: colors.text[1],
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 18,
-    color: colors.text[2],
-    textAlign: 'center',
-    paddingHorizontal: 20,
-    lineHeight: 24,
   },
   buttonContainer: {
     width: '100%',

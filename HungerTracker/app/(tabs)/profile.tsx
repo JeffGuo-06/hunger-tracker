@@ -15,7 +15,7 @@ export default function Profile() {
   const user = {
     name: "Jeff Guo",
     username: "@jeffguo",
-    bio: "Food lover and adventure  🍔🌮",
+    bio: "holy muck... 🍔🌮",
     location: "San Francisco, CA",
     stats: {
       mucks: 42,
