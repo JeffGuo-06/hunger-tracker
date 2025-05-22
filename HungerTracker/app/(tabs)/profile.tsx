@@ -16,7 +16,7 @@ export default function Profile() {
     name: "Jeff Guo",
     username: "@jeffguo",
     bio: "holy muck... 🍔🌮",
-    location: "San Francisco, CA",
+    location: "Markham, ON",
     stats: {
       mucks: 42,
       friends: 72,
