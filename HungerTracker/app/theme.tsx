@@ -5,9 +5,9 @@ export const colors = {
     3: "#707070"
   },
   acc: {
-    p1: "#FF8D4D", // Orange      
-    p2: "#A78BFA", // Purple     
-    s1: "#D732A8", // Pink      
+    p1: "#FF8D4D",      // Color Primary1
+    p2: "#A78BFA",      // Color Primary2
+    s1: "#D732A8",    // Color Secondary1
   },
   bg: {
     1: "#0F0F0F",    // Background 1
@@ -31,4 +31,12 @@ export const fontSizes = {
     large: 20,
     xlarge: 24,
 };
+
+const theme = {
+  colors,
+  spacing,
+  fontSizes,
+};
+
+export default theme;
 
