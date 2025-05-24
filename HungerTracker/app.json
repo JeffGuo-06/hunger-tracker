@@ -17,8 +17,8 @@
         "NSLocationWhenInUseUsageDescription": "Enable location access so your friends can see when you're nearby.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Enable location access so your friends can see when you're nearby.",
         "NSCameraUsageDescription": "Enable camera access so you can take photos of your food.",
-        "NSPhotoLibraryUsageDescription": "Enable photo library access so you can select photos of your food.",
-        "NSPhotoLibraryAddUsageDescription": "Enable photo library access so you can save photos of your food."
+        "NSPhotoLibraryAddUsageDescription": "Enable photo library access so you can save photos of your food.",
+        "NSContactsUsageDescription": "Allow Muckd to access your contacts to find friends who are already using the app."
       }
     },
     "android": {
@@ -43,7 +43,13 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Allow Muckd to access your contacts to find friends who are already using the app."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

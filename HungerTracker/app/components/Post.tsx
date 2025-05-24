@@ -6,7 +6,8 @@ import Animated, {
     useAnimatedStyle, 
     useSharedValue, 
     withSpring,
-    runOnJS
+    runOnJS,
+    useAnimatedReaction
 } from 'react-native-reanimated';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -21,10 +22,19 @@ export default function Post({ post }: { post: { id: string, user: { name: strin
     const lastScale = useSharedValue(1);
     const lastOffsetX = useSharedValue(0);
     const lastOffsetY = useSharedValue(0);
+    const isZoomed = useSharedValue(false);
 
     // Sensitivity factors
     const ZOOM_SENSITIVITY = 0.7;  // Reduce zoom sensitivity
     const PAN_SENSITIVITY = 0.6;   // Reduce pan sensitivity
+
+    // Track zoom state
+    useAnimatedReaction(
+        () => scale.value,
+        (currentScale) => {
+            isZoomed.value = currentScale > 1;
+        }
+    );
 
     const pinchGesture = Gesture.Pinch()
         .onStart((e) => {
@@ -98,11 +108,22 @@ export default function Post({ post }: { post: { id: string, user: { name: strin
 
     const panGesture = Gesture.Pan()
         .onUpdate((e) => {
-            // Panning is handled by the pinch gesture
+            if (isZoomed.value) {
+                offsetX.value = withSpring(e.translationX * PAN_SENSITIVITY, {
+                    damping: 50,
+                    stiffness: 400,
+                    mass: 0.5
+                });
+                offsetY.value = withSpring(e.translationY * PAN_SENSITIVITY, {
+                    damping: 50,
+                    stiffness: 400,
+                    mass: 0.5
+                });
+            }
         })
         .minPointers(2)
         .maxPointers(2)
-        .enabled(scale.value > 1);
+        .simultaneousWithExternalGesture(pinchGesture);
 
     const composed = Gesture.Simultaneous(pinchGesture, panGesture);
 
@@ -143,7 +164,7 @@ export default function Post({ post }: { post: { id: string, user: { name: strin
 const styles = StyleSheet.create({
     container: {
         marginBottom: 20,
-        backgroundColor: colors.bg[1],
+        backgroundColor: colors.bg[2],
     },
     header: {
         flexDirection: 'row',

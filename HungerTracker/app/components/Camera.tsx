@@ -14,14 +14,16 @@ export default function Camera() {
   const [cameraFacing, setCameraFacing] = useState<CameraType>("back");
   const [cameraFlash, setCameraFlash] = useState<FlashMode>("off");
   const [permission, requestPermission] = useCameraPermissions();
-  const [photo, setPhoto] = React.useState<string | null>(null);
+  const [photo, setPhoto] = useState<string>("");
   const [isFrozen, setIsFrozen] = useState(false);
   const cameraRef = React.useRef<CameraView>(null);
   
   async function handleTakePhoto() {
     setIsFrozen(true);
     const response = await cameraRef.current?.takePictureAsync({});
-    setPhoto(response!.uri);
+    if (response?.uri) {
+      setPhoto(response.uri);
+    }
     setIsFrozen(false);
   }
 
@@ -47,7 +49,6 @@ export default function Camera() {
   }
 
   function toggleCameraFlash() {
-    
     setCameraFlash((current) => (current === "off" ? "on" : "off"));
   }
 

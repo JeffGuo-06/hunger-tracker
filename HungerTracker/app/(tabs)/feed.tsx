@@ -55,7 +55,7 @@ export default function Feed() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <FlatList
         data={EXAMPLE_POSTS}
         renderItem={({ item }) => (
@@ -71,6 +71,6 @@ export default function Feed() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg[1],
+    backgroundColor: colors.bg[2],
   },
 });
