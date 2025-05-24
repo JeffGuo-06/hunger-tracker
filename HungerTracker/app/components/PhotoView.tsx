@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { Alert, View, Text } from "react-native";
+import { Alert, View, Text, StyleSheet  } from "react-native";
 import IconButton from "./IconButton";
 import { shareAsync } from "expo-sharing";
 import { saveToLibraryAsync } from "expo-media-library";
@@ -9,6 +9,7 @@ import Animated, {
   FadeOut,
   LinearTransition,
 } from "react-native-reanimated";
+import { colors } from "../theme";
 
 interface PhotoViewProps {
   photo: string;
@@ -43,16 +44,26 @@ export default function PhotoView({ photo, setPhoto }: PhotoViewProps) {
           borderRadius: 5,
         }}
       />
-      <View className="absolute bottom-4 px-4 w-full">
+      <View style={styles.buttonContainer}>
         <CustomButton
           title="Post"
           handlePress={() => {
             Alert.alert("Post");
           }}
-          textStyles="text-white"
+          containerStyles="bg-acc-p1 rounded-xl min-h-[56px]"
+          textStyles="text-white font-psemibold text-lg"
           isLoading={false}
         />
       </View>
     </Animated.View>
   );
 }
+
+const styles = StyleSheet.create({
+  buttonContainer: {
+    position: "absolute",
+    bottom: 16,
+    paddingHorizontal: 16,
+    width: "100%",
+  },
+});

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Alert, ScrollView } from 'react-native';
-import { Link, router } from 'expo-router';
+import { Link, router, useNavigation } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import { colors, spacing, fontSizes } from "../theme";
 
 interface FormData {
   phoneNumber: string;
@@ -21,6 +22,17 @@ export default function Login() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [showVerification, setShowVerification] = useState(false);
+  const navigation = useNavigation();
+
+  // Reset form when component mounts
+  useEffect(() => {
+    setFormData({
+      phoneNumber: '',
+      verificationCode: '',
+    });
+    setErrors({});
+    setShowVerification(false);
+  }, []);
 
   const validatePhoneNumber = (phone: string) => {
     if (!phone) return "Phone number is required";
@@ -43,8 +55,12 @@ export default function Login() {
       return;
     }
 
-    // Skip verification and go directly to the app
-    router.replace("/(tabs)");
+    // Show verification code input
+    setShowVerification(true);
+    Alert.alert(
+      'Verification Code Sent',
+      'Please check your phone for the verification code.'
+    );
   };
 
   const handleVerifyCode = () => {
@@ -54,7 +70,7 @@ export default function Login() {
       return;
     }
 
-    // Skip verification and go directly to the app
+    // Navigate to tabs after successful verification
     router.replace("/(tabs)");
   };
 
@@ -82,12 +98,13 @@ export default function Login() {
                 <Ionicons
                   name="phone-portrait-outline"
                   size={20}
-                  color="#666"
+                  color={colors.text[2]}
                   style={styles.inputIcon}
                 />
                 <TextInput
                   style={styles.input}
                   placeholder="Phone Number"
+                  placeholderTextColor={colors.text[2]}
                   keyboardType="phone-pad"
                   value={formData.phoneNumber}
                   onChangeText={(text) => {
@@ -115,12 +132,13 @@ export default function Login() {
                 <Ionicons
                   name="key-outline"
                   size={20}
-                  color="#666"
+                  color={colors.text[2]}
                   style={styles.inputIcon}
                 />
                 <TextInput
                   style={styles.input}
                   placeholder="Enter 6-digit code"
+                  placeholderTextColor={colors.text[2]}
                   keyboardType="number-pad"
                   maxLength={6}
                   value={formData.verificationCode}
@@ -144,12 +162,22 @@ export default function Login() {
               >
                 <Text style={styles.buttonText}>Verify Code</Text>
               </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.resendButton}
+                onPress={() => {
+                  setShowVerification(false);
+                  setFormData({ ...formData, verificationCode: '' });
+                }}
+              >
+                <Text style={styles.resendButtonText}>Change Phone Number</Text>
+              </TouchableOpacity>
             </>
           )}
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Don't have an account? </Text>
-            <Link href="/signup" asChild>
+            <Link href="./signup" replace asChild>
               <TouchableOpacity>
                 <Text style={styles.footerLink}>Sign up</Text>
               </TouchableOpacity>
@@ -164,7 +192,7 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.bg[1],
   },
   scrollContent: {
     flexGrow: 1,
@@ -177,12 +205,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#023047',
+    color: colors.text[1],
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: colors.text[2],
   },
   form: {
     gap: 16,
@@ -191,7 +219,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: colors.acc.p1,
     borderRadius: 12,
     paddingHorizontal: 16,
     height: 56,
@@ -202,7 +230,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 16,
-    color: '#333',
+    color: colors.text[1],
   },
   errorText: {
     color: '#dc2626',
@@ -210,7 +238,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   button: {
-    backgroundColor: '#023047',
+    backgroundColor: colors.acc.p1,
     height: 56,
     borderRadius: 12,
     justifyContent: 'center',
@@ -218,7 +246,16 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   buttonText: {
-    color: '#fff',
+    color: colors.bg[1],
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  resendButton: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  resendButtonText: {
+    color: colors.acc.p1,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -228,11 +265,11 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   footerText: {
-    color: '#666',
+    color: colors.text[2],
     fontSize: 14,
   },
   footerLink: {
-    color: '#023047',
+    color: colors.acc.p1,
     fontSize: 14,
     fontWeight: '600',
   },

@@ -12,28 +12,28 @@ type LocationCoords = {
 const EXAMPLE_USERS = [
   {
     id: "1",
-    name: "John",
+    name: "Laughter",
     location: {
-      latitude: 37.7749,
-      longitude: -122.4194,
+      latitude: 43.4643,
+      longitude: -80.5204,
     },
     avatar: "https://i.pravatar.cc/150?img=1",
   },
   {
     id: "2",
-    name: "Sarah",
+    name: "Ethan",
     location: {
-      latitude: 37.7848,
-      longitude: -122.4294,
+      latitude: 43.4675,
+      longitude: -79.6877,
     },
-    avatar: "https://i.pravatar.cc/150?img=2",
+    avatar: "https://i.pravatar.cc/150?img=5",
   },
   {
     id: "3",
-    name: "Mike",
+    name: "Hus",
     location: {
-      latitude: 37.7649,
-      longitude: -122.4094,
+      latitude: 43.46843,
+      longitude: -79.74241,
     },
     avatar: "https://i.pravatar.cc/150?img=3",
   },

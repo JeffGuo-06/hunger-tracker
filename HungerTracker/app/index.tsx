@@ -1,6 +1,8 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Link } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { colors } from "./theme";
+import HeroCarousel from './components/HeroCarousel';
 
 export default function HeroPage() {
   return (
@@ -9,24 +11,18 @@ export default function HeroPage() {
       
       {/* Hero Section */}
       <View style={styles.heroSection}>
-        <Image 
-          source={require('../assets/images/muckd-icon-prototype1.png')} 
-          style={styles.heroImage}
-          resizeMode="contain"
-        />
-        <Text style={styles.title}>Muckd</Text>
-        <Text style={styles.subtitle}>Track your meals, share with friends, and discover new food spots together.</Text>
+        <HeroCarousel />
       </View>
 
       {/* CTA Buttons */}
       <View style={styles.buttonContainer}>
-        <Link href="/(auth)/signup" asChild>
+        <Link href="/(auth)/signup" push asChild>
           <TouchableOpacity style={styles.primaryButton}>
             <Text style={styles.primaryButtonText}>Get Started</Text>
           </TouchableOpacity>
         </Link>
         
-        <Link href="/(auth)/login" asChild>
+        <Link href="/(auth)/login" push asChild>
           <TouchableOpacity style={styles.secondaryButton}>
             <Text style={styles.secondaryButtonText}>I already have an account</Text>
           </TouchableOpacity>
@@ -39,40 +35,19 @@ export default function HeroPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.bg[1],
     padding: 20,
   },
   heroSection: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 60,
-  },
-  heroImage: {
-    width: '80%',
-    height: 300,
-    marginBottom: 30,
-  },
-  title: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 18,
-    color: '#666',
-    textAlign: 'center',
-    paddingHorizontal: 20,
-    lineHeight: 24,
   },
   buttonContainer: {
     width: '100%',
     paddingBottom: 40,
   },
   primaryButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.acc.p1,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -88,10 +63,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#007AFF',
+    borderColor: colors.acc.p1,
   },
   secondaryButtonText: {
-    color: '#007AFF',
+    color: colors.acc.p1,
     fontSize: 18,
     fontWeight: '600',
   },

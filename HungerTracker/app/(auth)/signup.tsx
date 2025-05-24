@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { Link, router } from 'expo-router';
+import { Link, router, useNavigation } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { colors, spacing, fontSizes } from "../theme";
 
 interface FormData {
   phoneNumber: string;
@@ -20,6 +21,17 @@ export default function SignUp() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isCodeSent, setIsCodeSent] = useState(false);
+  const navigation = useNavigation();
+
+  // Reset form when component mounts
+  useEffect(() => {
+    setFormData({
+      phoneNumber: '',
+      verificationCode: '',
+    });
+    setErrors({});
+    setIsCodeSent(false);
+  }, []);
 
   const validatePhoneNumber = () => {
     const newErrors: FormErrors = {};
@@ -49,7 +61,6 @@ export default function SignUp() {
 
   const handleSendCode = () => {
     if (validatePhoneNumber()) {
-      // TODO: Implement SMS code sending logic
       setIsCodeSent(true);
       Alert.alert(
         'Verification Code Sent',
@@ -60,7 +71,6 @@ export default function SignUp() {
 
   const handleVerifyCode = () => {
     if (validateVerificationCode()) {
-      // TODO: Implement code verification and signup logic
       router.replace('/(tabs)');
     }
   };
@@ -71,7 +81,10 @@ export default function SignUp() {
       style={styles.container}
     >
       <StatusBar style="dark" />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.header}>
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>Join Muckd to start sharing your food journey</Text>
@@ -83,8 +96,14 @@ export default function SignUp() {
             <TextInput
               style={styles.input}
               value={formData.phoneNumber}
-              onChangeText={(text) => setFormData({ ...formData, phoneNumber: text })}
+              onChangeText={(text) => {
+                setFormData({ ...formData, phoneNumber: text });
+                if (errors.phoneNumber) {
+                  setErrors({});
+                }
+              }}
               placeholder="+1 (555) 555-5555"
+              placeholderTextColor={colors.text[2]}
               keyboardType="phone-pad"
               editable={!isCodeSent}
             />
@@ -97,8 +116,14 @@ export default function SignUp() {
               <TextInput
                 style={styles.input}
                 value={formData.verificationCode}
-                onChangeText={(text) => setFormData({ ...formData, verificationCode: text })}
+                onChangeText={(text) => {
+                  setFormData({ ...formData, verificationCode: text });
+                  if (errors.verificationCode) {
+                    setErrors({});
+                  }
+                }}
                 placeholder="Enter 6-digit code"
+                placeholderTextColor={colors.text[2]}
                 keyboardType="number-pad"
                 maxLength={6}
               />
@@ -129,7 +154,7 @@ export default function SignUp() {
 
           <View style={styles.loginContainer}>
             <Text style={styles.loginText}>Already have an account? </Text>
-            <Link href="/(auth)/login" asChild>
+            <Link href="./login" replace asChild>
               <TouchableOpacity>
                 <Text style={styles.loginLink}>Log In</Text>
               </TouchableOpacity>
@@ -144,7 +169,7 @@ export default function SignUp() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.bg[1],
   },
   scrollContent: {
     flexGrow: 1,
@@ -157,12 +182,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#333',
+    color: colors.text[1],
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: colors.text[2],
     lineHeight: 24,
   },
   form: {
@@ -174,30 +199,31 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: colors.text[1],
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: colors.acc.p1,
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    backgroundColor: '#f8f8f8',
+    color: colors.text[1],
+    backgroundColor: colors.bg[1],
   },
   errorText: {
-    color: '#ff3b30',
+    color: colors.acc.p1,
     fontSize: 14,
     marginTop: 4,
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.acc.p1,
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 20,
   },
   buttonText: {
-    color: '#fff',
+    color: colors.bg[1],
     fontSize: 18,
     fontWeight: '600',
   },
@@ -206,7 +232,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   resendButtonText: {
-    color: '#007AFF',
+    color: colors.acc.p1,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -216,11 +242,11 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   loginText: {
-    color: '#666',
+    color: colors.text[2],
     fontSize: 16,
   },
   loginLink: {
-    color: '#007AFF',
+    color: colors.acc.p1,
     fontSize: 16,
     fontWeight: '600',
   },

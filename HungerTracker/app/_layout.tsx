@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import "react-native-gesture-handler";
 import "../global.css";
 import { useFonts } from "expo-font";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // Set this to true when you want to re-enable authentication
 const REQUIRE_AUTH = false;
@@ -25,16 +26,18 @@ export default function Layout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      {!REQUIRE_AUTH ? (
-        <Stack.Screen name="(tabs)" />
-      ) : (
-        <>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-        </>
-      )}
-    </Stack>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Stack screenOptions={{ headerShown: false }}>
+        {!REQUIRE_AUTH ? (
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        ) : (
+          <>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(tabs)" />
+          </>
+        )}
+      </Stack>
+    </GestureHandlerRootView>
   );
 }

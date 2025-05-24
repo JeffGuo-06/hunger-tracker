@@ -9,17 +9,22 @@ import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SymbolView, SymbolViewProps, SFSymbol } from "expo-symbols";
 import PhotoView from "../components/PhotoView";
 import IconButton from "../components/IconButton";
+
 export default function Camera() {
   const [cameraFacing, setCameraFacing] = useState<CameraType>("back");
   const [cameraFlash, setCameraFlash] = useState<FlashMode>("off");
   const [permission, requestPermission] = useCameraPermissions();
   const [photo, setPhoto] = React.useState<string | null>(null);
+  const [isFrozen, setIsFrozen] = useState(false);
   const cameraRef = React.useRef<CameraView>(null);
-
+  
   async function handleTakePhoto() {
+    setIsFrozen(true);
     const response = await cameraRef.current?.takePictureAsync({});
     setPhoto(response!.uri);
+    setIsFrozen(false);
   }
+
   if (!permission) {
     // Camera permissions are still loading.
     return <View />;
@@ -42,6 +47,7 @@ export default function Camera() {
   }
 
   function toggleCameraFlash() {
+    
     setCameraFlash((current) => (current === "off" ? "on" : "off"));
   }
 
@@ -55,37 +61,38 @@ export default function Camera() {
           facing={cameraFacing}
           flash={cameraFlash}
           style={styles.camera}
-        >
-          <View style={styles.bottombar}>
-            <TouchableOpacity style={styles.button} onPress={toggleCameraFlash}>
-              <SymbolView
-                name={cameraFlash === "on" ? "bolt.fill" : "bolt.slash.fill"}
-                type="hierarchical"
-                tintColor="white"
-                size={40}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.button} onPress={handleTakePhoto}>
-              <SymbolView
-                name="circle"
-                type="hierarchical"
-                tintColor="white"
-                size={90}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={toggleCameraFacing}
-            >
-              <SymbolView
-                name="camera.rotate.fill"
-                type="hierarchical"
-                tintColor="white"
-                size={40}
-              />
-            </TouchableOpacity>
-          </View>
-        </CameraView>
+          mirror={cameraFacing === "front"}
+          active={!isFrozen}
+        />
+        <View style={styles.bottombar}>
+          <TouchableOpacity style={styles.button} onPress={toggleCameraFlash}>
+            <SymbolView
+              name={cameraFlash === "on" ? "bolt.fill" : "bolt.slash.fill"}
+              type="hierarchical"
+              tintColor="white"
+              size={40}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleTakePhoto}>
+            <SymbolView
+              name="circle"
+              type="hierarchical"
+              tintColor="white"
+              size={90}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={toggleCameraFacing}
+          >
+            <SymbolView
+              name="camera.rotate.fill"
+              type="hierarchical"
+              tintColor="white"
+              size={40}
+            />
+          </TouchableOpacity>
+        </View>
       </View>
     </>
   );
@@ -94,6 +101,7 @@ export default function Camera() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    position: 'relative',
   },
   camera: {
     flex: 1,
@@ -114,10 +122,12 @@ const styles = StyleSheet.create({
   bottombar: {
     position: "absolute",
     bottom: 0,
-    width: "100%",
-    alignItems: "center",
+    left: 0,
+    right: 0,
+    height: 120,
     backgroundColor: "hsla(0, 0%, 0%, 0.5)",
-    marginBottom: 10,
     flexDirection: "row",
+    alignItems: "center",
+    paddingBottom: 10,
   },
 });
