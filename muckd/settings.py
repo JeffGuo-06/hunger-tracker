@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 from datetime import timedelta
+import logging
+from storages.backends.s3boto3 import S3Boto3Storage
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -24,8 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-+7#mvf$@#g=zi^v(2n0+z6!4mz-xuscxise1m=nw24-&6q+p@^'
-
+SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -219,18 +220,53 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
-AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', 'us-east-1')
+AWS_S3_REGION_NAME = os.environ.get('AWS_S3_REGION_NAME', 'us-east-2')
 AWS_S3_FILE_OVERWRITE = False
-AWS_DEFAULT_ACL = None
+AWS_DEFAULT_ACL = 'public-read'
 AWS_S3_VERIFY = True
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 
-# Static and Media Files Configuration
-STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+# Debug AWS credentials
+logger = logging.getLogger(__name__)
+logger.info("=== AWS Configuration ===")
+logger.info(f"AWS_ACCESS_KEY_ID is set: {bool(AWS_ACCESS_KEY_ID)}")
+logger.info(f"AWS_SECRET_ACCESS_KEY is set: {bool(AWS_SECRET_ACCESS_KEY)}")
+logger.info(f"AWS_STORAGE_BUCKET_NAME: {AWS_STORAGE_BUCKET_NAME}")
+logger.info(f"AWS_S3_REGION_NAME: {AWS_S3_REGION_NAME}")
+logger.info(f"AWS_S3_CUSTOM_DOMAIN: {AWS_S3_CUSTOM_DOMAIN}")
+logger.info(f"AWS_DEFAULT_ACL: {AWS_DEFAULT_ACL}")
+logger.info(f"AWS_S3_FILE_OVERWRITE: {AWS_S3_FILE_OVERWRITE}")
+logger.info("=======================")
 
+# Static and Media Files Configuration
+class StaticStorage(S3Boto3Storage):
+    location = 'static'
+    default_acl = 'public-read'
+    file_overwrite = True
+
+class MediaStorage(S3Boto3Storage):
+    location = 'media'
+    default_acl = 'public-read'
+    file_overwrite = False
+
+# Configure storage backends
+STATICFILES_STORAGE = StaticStorage
+DEFAULT_FILE_STORAGE = MediaStorage
+
+# Add these settings for S3
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+
+AWS_QUERYSTRING_AUTH = False
+
+# Update URLs to use S3
 STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+
+# Remove any local storage settings
+STATIC_ROOT = None
+MEDIA_ROOT = None
 
 # django-allauth settings
 AUTHENTICATION_BACKENDS = (

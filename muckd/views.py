@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.db import models
+from django.db.models import Q
 from .models import Profile, Friendship, Post, Message, Notification, PhoneVerification
 from .serializers import (
     UserSerializer, ProfileSerializer, FriendshipSerializer,
@@ -20,6 +21,8 @@ from django.core.cache import cache
 from rest_framework_simplejwt.tokens import RefreshToken
 import random
 import logging
+from django.core.files.storage import default_storage
+from storages.backends.s3boto3 import S3Boto3Storage
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +43,9 @@ class UserViewSet(viewsets.ModelViewSet):
         phone_number = request.data.get('phone_number')
         email = request.data.get('email')
         password = request.data.get('password')
+        first_name = request.data.get('first_name')
+        last_name = request.data.get('last_name')
+        username = request.data.get('username')
 
         logger.info(f"Attempting to register user with phone: {phone_number}")
 
@@ -57,9 +63,15 @@ class UserViewSet(viewsets.ModelViewSet):
             user = User.objects.create_user(
                 email=email,
                 password=password,
-                phone_number=phone_number
+                phone_number=phone_number,
+                first_name=first_name,
+                last_name=last_name,
+                username=username
             )
             logger.info(f"User created successfully: {user.email}")
+
+            # Create profile for the user
+            Profile.objects.create(user=user)
 
             # Clear verification cache
             cache.delete(verification_key)
@@ -84,6 +96,16 @@ class ProfileViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    @action(detail=False, methods=['get'])
+    def me(self, request):
+        try:
+            profile = Profile.objects.get(user=request.user)
+        except Profile.DoesNotExist:
+            # Create profile if it doesn't exist
+            profile = Profile.objects.create(user=request.user)
+        serializer = self.get_serializer(profile)
+        return Response(serializer.data)
+
     @action(detail=True, methods=['post'])
     def toggle_hungry(self, request, pk=None):
         profile = self.get_object()
@@ -107,69 +129,202 @@ class ProfileViewSet(viewsets.ModelViewSet):
         return Response(self.get_serializer(profile).data)
 
 class FriendshipViewSet(viewsets.ModelViewSet):
-    queryset = Friendship.objects.all()
     serializer_class = FriendshipSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
-        serializer.save(sender=self.request.user)
+    def get_queryset(self):
+        user = self.request.user
+        return Friendship.objects.filter(
+            models.Q(sender=user) | models.Q(receiver=user)
+        ).order_by('-created_at')
+
+    @action(detail=False, methods=['post'])
+    def send(self, request):
+        username = request.data.get('username')
+        if not username:
+            return Response(
+                {'detail': 'Username is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            receiver = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return Response(
+                {'detail': 'User not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if receiver == request.user:
+            return Response(
+                {'detail': 'Cannot send friend request to yourself'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check if friendship already exists
+        existing_friendship = Friendship.objects.filter(
+            models.Q(sender=request.user, receiver=receiver) |
+            models.Q(sender=receiver, receiver=request.user)
+        ).first()
+
+        if existing_friendship:
+            if existing_friendship.status == 'pending':
+                return Response(
+                    {'detail': 'Friend request already sent'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            elif existing_friendship.status == 'accepted':
+                return Response(
+                    {'detail': 'Already friends'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        friendship = Friendship.objects.create(
+            sender=request.user,
+            receiver=receiver,
+            status='pending'
+        )
+        serializer = self.get_serializer(friendship)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'])
     def accept(self, request, pk=None):
         friendship = self.get_object()
         if friendship.receiver != request.user:
             return Response(
-                {"error": "You can only accept friend requests sent to you."},
+                {'detail': 'Not authorized to accept this request'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
+        if friendship.status != 'pending':
+            return Response(
+                {'detail': 'Friend request is not pending'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         friendship.status = 'accepted'
         friendship.save()
-
-        # Create notification
-        Notification.objects.create(
-            user=friendship.sender,
-            notification_type='friend_accepted',
-            content=f"{friendship.receiver.username} accepted your friend request!"
-        )
-
-        return Response(self.get_serializer(friendship).data)
+        serializer = self.get_serializer(friendship)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
         friendship = self.get_object()
         if friendship.receiver != request.user:
             return Response(
-                {"error": "You can only reject friend requests sent to you."},
+                {'detail': 'Not authorized to reject this request'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
+        if friendship.status != 'pending':
+            return Response(
+                {'detail': 'Friend request is not pending'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         friendship.status = 'rejected'
         friendship.save()
-        return Response(self.get_serializer(friendship).data)
+        serializer = self.get_serializer(friendship)
+        return Response(serializer.data)
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        post = serializer.save(user=self.request.user)
-        post.user.profile.last_ate = timezone.now()
-        post.user.profile.save()
-
-        # Create notifications for friends
-        friends = Friendship.objects.filter(
-            (models.Q(sender=post.user) | models.Q(receiver=post.user)),
-            status='accepted'
-        )
-        for friendship in friends:
-            friend = friendship.receiver if friendship.sender == post.user else friendship.sender
-            Notification.objects.create(
-                user=friend,
-                notification_type='new_post',
-                content=f"{post.user.username} just posted a new food picture!"
+        logger.info("=== Starting post creation process ===")
+        logger.info(f"Request data: {self.request.data}")
+        logger.info(f"Request FILES: {self.request.FILES}")
+        
+        try:
+            # Test S3 connection
+            logger.info("Testing S3 connection...")
+            try:
+                # Try to list objects in the bucket
+                bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+                logger.info(f"Attempting to access bucket: {bucket_name}")
+                s3_storage = S3Boto3Storage()
+                s3_client = s3_storage.connection.meta.client
+                response = s3_client.list_objects_v2(Bucket=bucket_name, MaxKeys=1)
+                logger.info(f"S3 connection successful. Bucket contents: {response.get('Contents', [])}")
+            except Exception as e:
+                logger.error(f"S3 connection test failed: {str(e)}")
+                logger.error(f"Error type: {type(e)}")
+                if hasattr(e, 'response'):
+                    logger.error(f"Error response: {e.response}")
+                raise
+            
+            # Get the image file
+            image_file = self.request.FILES.get('image')
+            if image_file:
+                logger.info(f"Image file details - Name: {image_file.name}, Size: {image_file.size}, Content Type: {image_file.content_type}")
+                logger.info(f"Image file type: {type(image_file)}")
+                logger.info(f"Image file attributes: {dir(image_file)}")
+            else:
+                logger.error("No image file found in request.FILES")
+                raise ValueError("No image file provided")
+            
+            # Save the post
+            post = serializer.save(user=self.request.user)
+            logger.info(f"Post created successfully with ID: {post.id}")
+            
+            # Log the image path and storage details
+            if post.image:
+                logger.info(f"Post image path: {post.image.url}")
+                logger.info(f"Post image name: {post.image.name}")
+                logger.info(f"Post image storage: {post.image.storage}")
+                logger.info(f"Post image storage class: {type(post.image.storage)}")
+                logger.info(f"Post image storage attributes: {dir(post.image.storage)}")
+                
+                # Try to verify the file exists in S3
+                try:
+                    exists = post.image.storage.exists(post.image.name)
+                    logger.info(f"Image exists in storage: {exists}")
+                    if exists:
+                        logger.info(f"Image URL: {post.image.url}")
+                        logger.info(f"Image storage path: {post.image.storage.path(post.image.name)}")
+                    else:
+                        logger.error(f"Image file does not exist in storage at path: {post.image.name}")
+                        # Try to get the file from storage
+                        try:
+                            file = post.image.storage.open(post.image.name)
+                            logger.info(f"Successfully opened file from storage: {file}")
+                            file.close()
+                        except Exception as e:
+                            logger.error(f"Failed to open file from storage: {str(e)}")
+                except Exception as e:
+                    logger.error(f"Error checking if image exists in storage: {str(e)}")
+                    logger.error(f"Error type: {type(e)}")
+                    logger.error(f"Error details: {e.__dict__ if hasattr(e, '__dict__') else 'No details available'}")
+            else:
+                logger.error("Post created but no image field was set")
+            
+            # Update user's profile
+            profile = self.request.user.profile
+            profile.last_post_at = timezone.now()
+            profile.save()
+            logger.info(f"Updated user profile last_post_at to: {profile.last_post_at}")
+            
+            # Notify friends
+            friends = Friendship.objects.filter(
+                (Q(sender=self.request.user) | Q(receiver=self.request.user)),
+                status='accepted'
             )
+            
+            for friendship in friends:
+                friend = friendship.receiver if friendship.sender == self.request.user else friendship.sender
+                Notification.objects.create(
+                    user=friend,
+                    notification_type='new_post',
+                    content=f"{self.request.user.username} posted a new photo"
+                )
+            logger.info(f"Created notifications for {friends.count()} friends")
+            
+        except Exception as e:
+            logger.error(f"Error in perform_create: {str(e)}")
+            logger.error(f"Error type: {type(e)}")
+            if hasattr(e, 'response'):
+                logger.error(f"Error response: {e.response}")
+            raise
 
 class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.all()
@@ -261,11 +416,36 @@ def verify_phone_number(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # Mark phone number as verified
-    cache.set(f'phone_verified_{phone_number}', True, timeout=3600)  # 1 hour
-    logger.info(f"Phone number {phone_number} verified successfully")
+    try:
+        # Get or create user
+        user, created = User.objects.get_or_create(
+            phone_number=phone_number,
+            defaults={
+                'username': phone_number,  # Use phone number as username
+                'is_active': True
+            }
+        )
 
-    return Response({'message': 'Phone number verified successfully'})
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+        refresh_token = str(refresh)
+
+        # Mark phone number as verified
+        cache.set(f'phone_verified_{phone_number}', True, timeout=3600)  # 1 hour
+        logger.info(f"Phone number {phone_number} verified successfully")
+
+        return Response({
+            'message': 'Phone number verified successfully',
+            'access': access_token,
+            'refresh': refresh_token
+        })
+    except Exception as e:
+        logger.error(f"Error during verification: {str(e)}")
+        return Response(
+            {'error': 'An error occurred during verification'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 def send_sms_view(request):
     if request.method == 'POST':

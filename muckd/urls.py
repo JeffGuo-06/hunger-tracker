@@ -31,8 +31,8 @@ REST_FRAMEWORK = {
 
 router = DefaultRouter()
 router.register(r'users', views.UserViewSet)
-router.register(r'profiles', views.ProfileViewSet)
-router.register(r'friendships', views.FriendshipViewSet)
+router.register(r'profiles', views.ProfileViewSet, basename='profile')
+router.register(r'friendships', views.FriendshipViewSet, basename='friendship')
 router.register(r'posts', views.PostViewSet)
 router.register(r'messages', views.MessageViewSet)
 router.register(r'notifications', views.NotificationViewSet)

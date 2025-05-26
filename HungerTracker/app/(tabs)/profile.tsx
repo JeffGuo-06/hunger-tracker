@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { colors, spacing, fontSizes } from "../theme";
 import {
   View,
@@ -8,60 +8,132 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import PhotoBoard from "../components/PhotoBoard";
+import { auth, posts } from "../services/api";
+import { router } from "expo-router";
+
+const API_URL = 'http://192.168.40.242:8000';
+
+interface UserProfile {
+  id: number;
+  user: {
+    id: number;
+    username: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    phone_number: string;
+    bio: string;
+    location: string;
+  };
+  profile_image: string | null;
+  last_ate: string | null;
+  is_hungry: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface UserPost {
+  id: string;
+  image: string;
+  caption: string;
+  created_at: string;
+}
 
 export default function Profile() {
-  // Example user data - in a real app, this would come from your backend
-  const user = {
-    name: "Jeff Guo",
-    username: "@jeffguo",
-    bio: "holy muck... 🍔🌮",
-    location: "Markham, ON",
-    stats: {
-      mucks: 42,
-      friends: 72,
-    },
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [userPosts, setUserPosts] = useState<UserPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [friendsCount, setFriendsCount] = useState(0);
+
+  useEffect(() => {
+    fetchProfile();
+    fetchFriendsCount();
+    fetchUserPosts();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const response = await auth.getProfile();
+      setUser(response);
+    } catch (err: any) {
+      console.error('Error fetching profile:', err);
+      setError(err.message || 'Failed to load profile');
+    } finally {
+      setLoading(false);
+    }
   };
-  const EXAMPLE_POSTS = [
-    {
-      id: '1',
-      imageUrl: require('../../assets/images/muckd-icon-prototype1.png'),
-      comments: 5,
-    },
-    {
-      id: '2',
-      imageUrl: require('../../assets/images/muckd-icon-prototype1.png'),
-      comments: 3,
-    },
-    {
-      id: '3',
-      imageUrl: require('../../assets/images/muckd-icon-prototype1.png'),
-      comments: 2,
-    },
-    {
-      id: '4',
-      imageUrl: require('../../assets/images/muckd-icon-prototype1.png'),
-      comments: 4,
-    },
-    {
-      id: '5',
-      imageUrl: require('../../assets/images/muckd-icon-prototype1.png'),
-      comments: 1,
-    },
-    {
-      id: '6',
-      imageUrl: require('../../assets/images/muckd-icon-prototype1.png'),
-      comments: 3,
-    },
-    {
-      id: '7',
-      imageUrl: require('../../assets/images/muckd-icon-prototype1.png'),
-      comments: 3,
-    },
-  ];
- 
+
+  const fetchUserPosts = async () => {
+    try {
+      const response = await posts.getAll();
+      // Filter posts for the current user
+      const currentUserPosts = response.filter((post: any) => post.user.id === user?.user.id);
+      setUserPosts(currentUserPosts);
+    } catch (err) {
+      console.error('Error fetching user posts:', err);
+    }
+  };
+
+  const fetchFriendsCount = async () => {
+    try {
+      const response = await auth.getFriends();
+      const acceptedFriends = response.data.filter(
+        (friend: any) => friend.status === 'accepted'
+      );
+      setFriendsCount(acceptedFriends.length);
+    } catch (err) {
+      console.error('Error fetching friends count:', err);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await auth.logout();
+      router.replace("/(auth)/login");
+    } catch (error) {
+      console.error('Logout error:', error);
+      Alert.alert('Error', 'Failed to logout. Please try again.');
+    }
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.acc.p1} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error || 'Failed to load profile'}</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const profileImageUrl = user.profile_image 
+    ? `${API_URL}${user.profile_image}`
+    : null;
+
+  // Transform posts for PhotoBoard
+  const transformedPosts = userPosts.map(post => ({
+    id: post.id,
+    imageUrl: post.image,
+    comments: 0, // You can add comments count if needed
+  }));
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.container}>
@@ -74,27 +146,33 @@ export default function Profile() {
 
         {/* Profile Info */}
         <View style={styles.profileInfo}>
-          <Image
-            source={require('../../assets/images/placeholder/jeff-profile.jpg')}
-            style={styles.profileImage}
-          />
-          <Text style={styles.name}>{user.name}</Text>
-          <Text style={styles.username}>{user.username}</Text>
-          <Text style={styles.bio}>{user.bio}</Text>
+          {profileImageUrl ? (
+            <Image
+              source={{ uri: profileImageUrl }}
+              style={styles.profileImage}
+            />
+          ) : (
+            <View style={[styles.profileImage, styles.defaultProfileImage]}>
+              <Ionicons name="person" size={60} color="#9E9E9E" />
+            </View>
+          )}
+          <Text style={styles.name}>{`${user.user.first_name} ${user.user.last_name}`}</Text>
+          <Text style={styles.username}>@{user.user.username}</Text>
+          <Text style={styles.bio}>{user.user.bio || 'No bio yet'}</Text>
           <View style={styles.locationContainer}>
             <Ionicons name="location-outline" size={16} color="#666" />
-            <Text style={styles.location}>{user.location}</Text>
+            <Text style={styles.location}>{user.user.location}</Text>
           </View>
         </View>
 
         {/* Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{user.stats.mucks}</Text>
+            <Text style={styles.statNumber}>{userPosts.length}</Text>
             <Text style={styles.statLabel}>Mucks</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{user.stats.friends}</Text>
+            <Text style={styles.statNumber}>{friendsCount}</Text>
             <Text style={styles.statLabel}>Friends</Text>
           </View>
         </View>
@@ -111,9 +189,21 @@ export default function Profile() {
 
         {/* Recent Activity */}
         <PhotoBoard 
-          posts={EXAMPLE_POSTS} 
-          //onPhotoPress={handlePhotoPress}
+          posts={transformedPosts} 
+          onPhotoPress={(post) => {
+            // Handle post press if needed
+            console.log('Post pressed:', post);
+          }}
         />
+
+        {/* Logout Button */}
+        <TouchableOpacity 
+          style={styles.logoutButtonContainer} 
+          onPress={handleLogout}
+        >
+          <Ionicons name="log-out-outline" size={20} color="#fff" style={styles.logoutIcon} />
+          <Text style={styles.logoutButtonText}>Log Out</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -131,6 +221,24 @@ const styles = StyleSheet.create({
   },
   settingsButton: {
     padding: 8,
+  },
+  logoutButtonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.acc.p1,
+    marginHorizontal: 20,
+    marginVertical: 20,
+    padding: 16,
+    borderRadius: 12,
+  },
+  logoutIcon: {
+    marginRight: 8,
+  },
+  logoutButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   profileInfo: {
     alignItems: "center",
@@ -242,5 +350,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.text[2],
     marginTop: 2,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    color: colors.text[2],
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  defaultProfileImage: {
+    backgroundColor: colors.bg[3],
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

@@ -7,14 +7,16 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'phone_number', 'bio', 'location')
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
+    bio = serializers.CharField(source='user.bio', read_only=True)
+    location = serializers.CharField(source='user.location', read_only=True)
     
     class Meta:
         model = Profile
-        fields = ('id', 'user', 'bio', 'last_ate', 'is_hungry', 'created_at', 'updated_at')
+        fields = ('id', 'user', 'bio', 'location', 'profile_image', 'last_ate', 'is_hungry', 'created_at', 'updated_at')
 
 class FriendshipSerializer(serializers.ModelSerializer):
     sender = UserSerializer(read_only=True)

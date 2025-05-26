@@ -3,51 +3,114 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvo
 import { useAuth } from '../context/AuthContext';
 import { auth } from '../services/api';
 import { colors } from '../theme';
+import { Ionicons } from '@expo/vector-icons';
+
+interface FormData {
+  phoneNumber: string;
+  verificationCode: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+}
+
+interface FormErrors {
+  phoneNumber?: string;
+  verificationCode?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+}
 
 export default function Register() {
-  const [step, setStep] = useState<'phone' | 'verification' | 'details'>('phone');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState<FormData>({
+    phoneNumber: '',
+    verificationCode: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    firstName: '',
+    lastName: '',
+    username: '',
+  });
+  const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
+  const [registerMethod, setRegisterMethod] = useState<'phone' | 'email'>('phone');
   const { register } = useAuth();
 
-  const formatPhoneNumber = (text: string) => {
-    // Remove all non-digit characters
-    const cleaned = text.replace(/\D/g, '');
-    
-    // Format as (XXX) XXX-XXXX
-    if (cleaned.length <= 3) {
-      return cleaned;
-    } else if (cleaned.length <= 6) {
-      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
-    } else {
-      return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
-    }
-  };
-
   const validatePhoneNumber = (phone: string) => {
-    const cleaned = phone.replace(/\D/g, '');
-    if (cleaned.length !== 10) {
-      return "Please enter a valid 10-digit phone number";
+    if (!phone) return "Phone number is required";
+    if (!/^\+?[1-9]\d{1,14}$/.test(phone)) {
+      return "Please enter a valid phone number";
     }
     return "";
   };
 
+  const validateVerificationCode = (code: string) => {
+    if (!code) return "Verification code is required";
+    if (code.length !== 6) return "Code must be 6 digits";
+    return "";
+  };
+
+  const validateEmail = (email: string) => {
+    if (!email) return "Email is required";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return "Please enter a valid email address";
+    }
+    return "";
+  };
+
+  const validatePassword = (password: string) => {
+    if (!password) return "Password is required";
+    if (password.length < 6) return "Password must be at least 6 characters";
+    return "";
+  };
+
+  const validateConfirmPassword = (password: string, confirmPassword: string) => {
+    if (!confirmPassword) return "Please confirm your password";
+    if (password !== confirmPassword) return "Passwords do not match";
+    return "";
+  };
+
+  const validateName = (name: string, field: 'firstName' | 'lastName') => {
+    if (!name) return `${field === 'firstName' ? 'First' : 'Last'} name is required`;
+    if (name.length < 2) return `${field === 'firstName' ? 'First' : 'Last'} name must be at least 2 characters`;
+    return "";
+  };
+
+  const validateUsername = (username: string) => {
+    if (!username) return "Username is required";
+    if (username.length < 3) return "Username must be at least 3 characters";
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      return "Username can only contain letters, numbers, and underscores";
+    }
+    return "";
+  };
+
+  const generateUsername = (first: string, last: string) => {
+    const randomNum = Math.floor(1000 + Math.random() * 9000); // Random 4-digit number
+    return `${first.toLowerCase()}${last.toLowerCase()}${randomNum}`;
+  };
+
   const handleRequestVerification = async () => {
-    const phoneError = validatePhoneNumber(phoneNumber);
+    const phoneError = validatePhoneNumber(formData.phoneNumber);
     if (phoneError) {
-      Alert.alert('Error', phoneError);
+      setErrors({ phoneNumber: phoneError });
       return;
     }
 
     try {
       setLoading(true);
-      console.log('Sending verification request for:', phoneNumber);
-      const response = await auth.requestPhoneVerification(phoneNumber);
+      console.log('Sending verification request for:', formData.phoneNumber);
+      const response = await auth.requestPhoneVerification(formData.phoneNumber);
       console.log('Verification request response:', response);
-      setStep('verification');
+      setShowVerification(true);
       Alert.alert(
         'Verification Code Sent',
         'Please check your phone for the verification code.'
@@ -71,10 +134,10 @@ export default function Register() {
 
     try {
       setLoading(true);
-      console.log('Verifying code:', verificationCode, 'for phone:', phoneNumber);
-      const response = await auth.verifyPhone(phoneNumber, verificationCode);
+      console.log('Verifying code:', formData.verificationCode, 'for phone:', formData.phoneNumber);
+      const response = await auth.verifyPhone(formData.phoneNumber, formData.verificationCode);
       console.log('Verification response:', response);
-      setStep('details');
+      setShowVerification(false);
     } catch (error: any) {
       console.error('Verification error:', error.response?.data || error.message);
       Alert.alert(
@@ -87,29 +150,90 @@ export default function Register() {
   };
 
   const handleRegister = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+    const emailError = validateEmail(formData.email);
+    const passwordError = validatePassword(formData.password);
+    const confirmPasswordError = validateConfirmPassword(formData.password, formData.confirmPassword);
+    const firstNameError = validateName(formData.firstName, 'firstName');
+    const lastNameError = validateName(formData.lastName, 'lastName');
+    const usernameError = validateUsername(formData.username);
+
+    if (emailError || passwordError || confirmPasswordError || firstNameError || lastNameError || usernameError) {
+      setErrors({
+        email: emailError,
+        password: passwordError,
+        confirmPassword: confirmPasswordError,
+        firstName: firstNameError,
+        lastName: lastNameError,
+        username: usernameError,
+      });
       return;
     }
 
     try {
       setLoading(true);
-      console.log('Registering user with:', { email, phoneNumber });
+      const username = formData.username || generateUsername(formData.firstName, formData.lastName);
+      console.log('Registering user with:', { ...formData, username });
       await register({
-        email,
-        password,
-        phone_number: phoneNumber,
+        email: formData.email,
+        password1: formData.password,
+        password2: formData.confirmPassword,
+        phone_number: formData.phoneNumber,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        username,
       });
     } catch (error: any) {
       console.error('Registration error:', error.response?.data || error.message);
       Alert.alert(
         'Error',
-        error.response?.data?.error || 'Failed to create account. Please try again.'
+        error.response?.data?.detail || 'Failed to create account. Please try again.'
       );
     } finally {
       setLoading(false);
     }
   };
+
+  const renderInput = (
+    label: string,
+    value: string,
+    onChangeText: (text: string) => void,
+    error: string | undefined,
+    options: {
+      placeholder: string;
+      secureTextEntry?: boolean;
+      keyboardType?: 'default' | 'email-address' | 'phone-pad' | 'number-pad';
+      autoCapitalize?: 'none' | 'words';
+      autoComplete?: 'email' | 'password' | 'name' | 'username' | 'tel';
+      icon: keyof typeof Ionicons.glyphMap;
+      maxLength?: number;
+    }
+  ) => (
+    <>
+      <Text style={styles.label}>{label}</Text>
+      <View style={styles.inputContainer}>
+        <Ionicons
+          name={options.icon}
+          size={20}
+          color={colors.text[2]}
+          style={styles.inputIcon}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder={options.placeholder}
+          placeholderTextColor={colors.text[2]}
+          value={value}
+          onChangeText={onChangeText}
+          secureTextEntry={options.secureTextEntry}
+          keyboardType={options.keyboardType}
+          autoCapitalize={options.autoCapitalize}
+          autoComplete={options.autoComplete}
+          maxLength={options.maxLength}
+          editable={!loading}
+        />
+      </View>
+      {error && <Text style={styles.errorText}>{error}</Text>}
+    </>
+  );
 
   return (
     <KeyboardAvoidingView
@@ -122,99 +246,245 @@ export default function Register() {
       >
         <Text style={styles.title}>Create Account</Text>
 
-        {step === 'phone' && (
-          <>
-            <Text style={styles.label}>Phone Number</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="(XXX) XXX-XXXX"
-              value={phoneNumber}
-              onChangeText={(text) => setPhoneNumber(formatPhoneNumber(text))}
-              keyboardType="phone-pad"
-              maxLength={14}
-              editable={!loading}
-            />
-            <TouchableOpacity
-              style={[styles.button, (!phoneNumber || loading) && styles.buttonDisabled]}
-              onPress={handleRequestVerification}
-              disabled={loading || !phoneNumber}
-            >
-              <Text style={styles.buttonText}>
-                {loading ? 'Sending...' : 'Send Verification Code'}
-              </Text>
-            </TouchableOpacity>
-          </>
-        )}
+        <View style={styles.registerMethodContainer}>
+          <TouchableOpacity
+            style={[
+              styles.registerMethodButton,
+              registerMethod === 'phone' && styles.registerMethodButtonActive
+            ]}
+            onPress={() => setRegisterMethod('phone')}
+          >
+            <Text style={[
+              styles.registerMethodText,
+              registerMethod === 'phone' && styles.registerMethodTextActive
+            ]}>Phone</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.registerMethodButton,
+              registerMethod === 'email' && styles.registerMethodButtonActive
+            ]}
+            onPress={() => setRegisterMethod('email')}
+          >
+            <Text style={[
+              styles.registerMethodText,
+              registerMethod === 'email' && styles.registerMethodTextActive
+            ]}>Email</Text>
+          </TouchableOpacity>
+        </View>
 
-        {step === 'verification' && (
-          <>
-            <Text style={styles.label}>Verification Code</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter 6-digit code"
-              value={verificationCode}
-              onChangeText={setVerificationCode}
-              keyboardType="number-pad"
-              maxLength={6}
-              editable={!loading}
-            />
-            <TouchableOpacity
-              style={[styles.button, (!verificationCode || loading) && styles.buttonDisabled]}
-              onPress={handleVerifyCode}
-              disabled={loading || !verificationCode}
-            >
-              <Text style={styles.buttonText}>
-                {loading ? 'Verifying...' : 'Verify Code'}
-              </Text>
-            </TouchableOpacity>
+        <View style={styles.formContainer}>
+          {registerMethod === 'phone' ? (
+            !showVerification ? (
+              <>
+                {renderInput(
+                  'Phone Number',
+                  formData.phoneNumber,
+                  (text) => {
+                    setFormData({ ...formData, phoneNumber: text });
+                    if (errors.phoneNumber) {
+                      setErrors({ ...errors, phoneNumber: undefined });
+                    }
+                  },
+                  errors.phoneNumber,
+                  {
+                    placeholder: 'Enter your phone number',
+                    keyboardType: 'phone-pad',
+                    autoComplete: 'tel',
+                    icon: 'phone-portrait-outline',
+                  }
+                )}
 
-            <TouchableOpacity
-              style={styles.resendButton}
-              onPress={() => {
-                setStep('phone');
-                setVerificationCode('');
-              }}
-              disabled={loading}
-            >
-              <Text style={styles.resendButtonText}>Change Phone Number</Text>
-            </TouchableOpacity>
-          </>
-        )}
+                <TouchableOpacity
+                  style={[styles.button, (!formData.phoneNumber || loading) && styles.buttonDisabled]}
+                  onPress={handleRequestVerification}
+                  disabled={loading || !formData.phoneNumber}
+                >
+                  <Text style={styles.buttonText}>
+                    {loading ? 'Sending...' : 'Send Code'}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                {renderInput(
+                  'Verification Code',
+                  formData.verificationCode,
+                  (text) => {
+                    setFormData({ ...formData, verificationCode: text });
+                    if (errors.verificationCode) {
+                      setErrors({ ...errors, verificationCode: undefined });
+                    }
+                  },
+                  errors.verificationCode,
+                  {
+                    placeholder: 'Enter 6-digit code',
+                    keyboardType: 'number-pad',
+                    icon: 'key-outline',
+                    maxLength: 6,
+                  }
+                )}
 
-        {step === 'details' && (
-          <>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              editable={!loading}
-            />
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoComplete="password"
-              editable={!loading}
-            />
-            <TouchableOpacity
-              style={[styles.button, (!email || !password || loading) && styles.buttonDisabled]}
-              onPress={handleRegister}
-              disabled={loading || !email || !password}
-            >
-              <Text style={styles.buttonText}>
-                {loading ? 'Creating Account...' : 'Create Account'}
-              </Text>
-            </TouchableOpacity>
-          </>
-        )}
+                <TouchableOpacity
+                  style={[styles.button, (!formData.verificationCode || loading) && styles.buttonDisabled]}
+                  onPress={handleVerifyCode}
+                  disabled={loading || !formData.verificationCode}
+                >
+                  <Text style={styles.buttonText}>
+                    {loading ? 'Verifying...' : 'Verify Code'}
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.resendButton}
+                  onPress={() => {
+                    setShowVerification(false);
+                    setFormData({ ...formData, verificationCode: '' });
+                  }}
+                  disabled={loading}
+                >
+                  <Text style={styles.resendButtonText}>Change Phone Number</Text>
+                </TouchableOpacity>
+              </>
+            )
+          ) : (
+            <>
+              {renderInput(
+                'Email',
+                formData.email,
+                (text) => {
+                  setFormData({ ...formData, email: text });
+                  if (errors.email) {
+                    setErrors({ ...errors, email: undefined });
+                  }
+                },
+                errors.email,
+                {
+                  placeholder: 'Enter your email',
+                  keyboardType: 'email-address',
+                  autoCapitalize: 'none',
+                  autoComplete: 'email',
+                  icon: 'mail-outline',
+                }
+              )}
+
+              {renderInput(
+                'Password',
+                formData.password,
+                (text) => {
+                  setFormData({ ...formData, password: text });
+                  if (errors.password) {
+                    setErrors({ ...errors, password: undefined });
+                  }
+                },
+                errors.password,
+                {
+                  placeholder: 'Enter your password',
+                  secureTextEntry: true,
+                  autoComplete: 'password',
+                  icon: 'lock-closed-outline',
+                }
+              )}
+
+              {renderInput(
+                'Confirm Password',
+                formData.confirmPassword,
+                (text) => {
+                  setFormData({ ...formData, confirmPassword: text });
+                  if (errors.confirmPassword) {
+                    setErrors({ ...errors, confirmPassword: undefined });
+                  }
+                },
+                errors.confirmPassword,
+                {
+                  placeholder: 'Confirm your password',
+                  secureTextEntry: true,
+                  autoComplete: 'password',
+                  icon: 'lock-closed-outline',
+                }
+              )}
+            </>
+          )}
+
+          {renderInput(
+            'First Name',
+            formData.firstName,
+            (text) => {
+              setFormData({ ...formData, firstName: text });
+              if (errors.firstName) {
+                setErrors({ ...errors, firstName: undefined });
+              }
+            },
+            errors.firstName,
+            {
+              placeholder: 'Enter your first name',
+              autoCapitalize: 'words',
+              autoComplete: 'name',
+              icon: 'person-outline',
+            }
+          )}
+
+          {renderInput(
+            'Last Name',
+            formData.lastName,
+            (text) => {
+              setFormData({ ...formData, lastName: text });
+              if (errors.lastName) {
+                setErrors({ ...errors, lastName: undefined });
+              }
+            },
+            errors.lastName,
+            {
+              placeholder: 'Enter your last name',
+              autoCapitalize: 'words',
+              autoComplete: 'name',
+              icon: 'person-outline',
+            }
+          )}
+
+          {renderInput(
+            'Username',
+            formData.username,
+            (text) => {
+              setFormData({ ...formData, username: text });
+              if (errors.username) {
+                setErrors({ ...errors, username: undefined });
+              }
+            },
+            errors.username,
+            {
+              placeholder: 'Choose a username (optional)',
+              autoCapitalize: 'none',
+              autoComplete: 'username',
+              icon: 'at-outline',
+            }
+          )}
+
+          <TouchableOpacity
+            style={[
+              styles.button,
+              (
+                !formData.firstName ||
+                !formData.lastName ||
+                (registerMethod === 'email' && (!formData.email || !formData.password || !formData.confirmPassword)) ||
+                (registerMethod === 'phone' && (!formData.phoneNumber || !formData.verificationCode)) ||
+                loading
+              ) && styles.buttonDisabled
+            ]}
+            onPress={handleRegister}
+            disabled={
+              loading ||
+              !formData.firstName ||
+              !formData.lastName ||
+              (registerMethod === 'email' && (!formData.email || !formData.password || !formData.confirmPassword)) ||
+              (registerMethod === 'phone' && (!formData.phoneNumber || !formData.verificationCode))
+            }
+          >
+            <Text style={styles.buttonText}>
+              {loading ? 'Creating Account...' : 'Create Account'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -237,24 +507,65 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     textAlign: 'center',
   },
+  registerMethodContainer: {
+    flexDirection: 'row',
+    backgroundColor: colors.bg[2],
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 16,
+  },
+  registerMethodButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  registerMethodButtonActive: {
+    backgroundColor: colors.bg[1],
+  },
+  registerMethodText: {
+    fontSize: 16,
+    color: colors.text[2],
+    fontWeight: '500',
+  },
+  registerMethodTextActive: {
+    color: colors.text[1],
+    fontWeight: '600',
+  },
   label: {
     fontSize: 16,
     color: colors.text[1],
     marginBottom: 8,
   },
-  input: {
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.acc.p1,
     borderRadius: 12,
-    padding: 16,
+    paddingHorizontal: 16,
+    height: 56,
+    marginBottom: 16,
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
     fontSize: 16,
-    color: colors.text[1],
+    color: '#FFFFFF',
+  },
+  errorText: {
+    color: '#dc2626',
+    fontSize: 14,
+    marginTop: -12,
     marginBottom: 16,
   },
   button: {
     backgroundColor: colors.acc.p1,
-    padding: 16,
+    height: 56,
     borderRadius: 12,
+    justifyContent: 'center',
     alignItems: 'center',
     marginTop: 8,
   },
@@ -274,5 +585,8 @@ const styles = StyleSheet.create({
     color: colors.acc.p1,
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  formContainer: {
+    gap: 16,
   },
 }); 

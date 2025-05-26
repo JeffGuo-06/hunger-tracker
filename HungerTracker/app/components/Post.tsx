@@ -167,7 +167,7 @@ export default function Post({ post }: PostProps) {
         <View style={styles.container}>
             <View style={styles.header}>
                 <Image
-                    source={{ uri: post.user.profileImage }}
+                    source={{ uri: post.user.profileImage || undefined }}
                     style={styles.profileImage}
                     contentFit="cover"
                 />

@@ -2,10 +2,22 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
+from django.conf import settings
+from storages.backends.s3boto3 import S3Boto3Storage
+
+class MediaStorage(S3Boto3Storage):
+    location = 'media'
+    file_overwrite = False
+    default_acl = None  # This disables ACLs
 
 class Profile(models.Model):
     user = models.OneToOneField('muckd.User', on_delete=models.CASCADE)
-    bio = models.TextField(max_length=500, blank=True)
+    profile_image = models.ImageField(
+        upload_to='profile_images/',
+        storage=MediaStorage(),
+        null=True,
+        blank=True
+    )
     last_ate = models.DateTimeField(null=True, blank=True)
     is_hungry = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -35,7 +47,10 @@ class Friendship(models.Model):
 
 class Post(models.Model):
     user = models.ForeignKey('muckd.User', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='posts/')
+    image = models.ImageField(
+        upload_to='posts/',
+        storage=MediaStorage()
+    )
     caption = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -80,6 +95,8 @@ class Notification(models.Model):
 class User(AbstractUser):
     phone_number = PhoneNumberField(unique=True, null=True, blank=True)
     is_phone_verified = models.BooleanField(default=False)
+    bio = models.TextField(max_length=500, blank=True, default="")
+    location = models.CharField(max_length=100, default="unset location")
 
 class PhoneVerification(models.Model):
     user = models.ForeignKey('muckd.User', on_delete=models.CASCADE)
