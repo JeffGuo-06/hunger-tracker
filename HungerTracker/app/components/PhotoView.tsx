@@ -1,49 +1,48 @@
-import { Image } from "expo-image";
-import { Alert, View, Text, StyleSheet  } from "react-native";
-import IconButton from "./IconButton";
-import { shareAsync } from "expo-sharing";
-import { saveToLibraryAsync } from "expo-media-library";
-import CustomButton from "./CustomButton";
+import React from 'react';
+import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { Image } from 'expo-image';
+import { SymbolView } from 'expo-symbols';
+import { colors } from '../theme';
+import CustomButton from './CustomButton';
+import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
+
+configureReanimatedLogger({
+  level: ReanimatedLogLevel.warn,
+  strict: false, // Reanimated runs in strict mode by default
+});
+
 import Animated, {
   FadeIn,
   FadeOut,
   LinearTransition,
-} from "react-native-reanimated";
-import { colors } from "../theme";
+} from 'react-native-reanimated';
 
 interface PhotoViewProps {
   photo: string;
-  setPhoto: React.Dispatch<React.SetStateAction<string>>;
+  onClose: () => void;
 }
-export default function PhotoView({ photo, setPhoto }: PhotoViewProps) {
+
+export default function PhotoView({ photo, onClose }: PhotoViewProps) {
   return (
     <Animated.View
       layout={LinearTransition}
       entering={FadeIn}
       exiting={FadeOut}
+      style={styles.container}
     >
-      <View
-        style={{
-          position: "absolute",
-          zIndex: 1,
-          paddingTop: 50,
-          right: 20,
-        }}
-      >
-        <IconButton
-          onPress={() => setPhoto("")}
-          iosName={"xmark"}
-          androidName="close"
-        />
-      </View>
       <Image
         source={photo}
-        style={{
-          height: "100%",
-          width: "100%",
-          borderRadius: 5,
-        }}
+        style={styles.image}
+        contentFit="cover"
       />
+      <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+        <SymbolView
+          name="xmark.circle.fill"
+          type="hierarchical"
+          tintColor="white"
+          size={40}
+        />
+      </TouchableOpacity>
       <View style={styles.buttonContainer}>
         <CustomButton
           title="Post"
@@ -60,10 +59,25 @@ export default function PhotoView({ photo, setPhoto }: PhotoViewProps) {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.bg[1],
+  },
+  image: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    padding: 10,
+  },
   buttonContainer: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 16,
     paddingHorizontal: 16,
-    width: "100%",
+    width: '100%',
   },
 });

@@ -1,10 +1,11 @@
 import { View, Text, StyleSheet } from "react-native";
 import { colors } from "../theme";
+import AddContacts from "../components/AddContacts";
 
 export default function Profile() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>You have no friends</Text>
+      <AddContacts />
     </View>
   );
 }

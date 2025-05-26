@@ -6,7 +6,7 @@ import {
 } from "expo-camera";
 import React, { useState } from "react";
 import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SymbolView, SymbolViewProps, SFSymbol } from "expo-symbols";
+import { SymbolView } from "expo-symbols";
 import PhotoView from "../components/PhotoView";
 import IconButton from "../components/IconButton";
 
@@ -14,15 +14,24 @@ export default function Camera() {
   const [cameraFacing, setCameraFacing] = useState<CameraType>("back");
   const [cameraFlash, setCameraFlash] = useState<FlashMode>("off");
   const [permission, requestPermission] = useCameraPermissions();
-  const [photo, setPhoto] = React.useState<string | null>(null);
+  const [photo, setPhoto] = useState<string | null>(null);
   const [isFrozen, setIsFrozen] = useState(false);
   const cameraRef = React.useRef<CameraView>(null);
   
   async function handleTakePhoto() {
+    if (!cameraRef.current) return;
+    
     setIsFrozen(true);
-    const response = await cameraRef.current?.takePictureAsync({});
-    setPhoto(response!.uri);
-    setIsFrozen(false);
+    try {
+      const response = await cameraRef.current.takePictureAsync({});
+      if (response?.uri) {
+        setPhoto(response.uri);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+    } finally {
+      setIsFrozen(false);
+    }
   }
 
   if (!permission) {
@@ -47,54 +56,53 @@ export default function Camera() {
   }
 
   function toggleCameraFlash() {
-    
     setCameraFlash((current) => (current === "off" ? "on" : "off"));
   }
 
-  if (photo) return <PhotoView photo={photo} setPhoto={setPhoto} />;
+  if (photo) {
+    return <PhotoView photo={photo} onClose={() => setPhoto(null)} />;
+  }
 
   return (
-    <>
-      <View style={styles.container}>
-        <CameraView
-          ref={cameraRef}
-          facing={cameraFacing}
-          flash={cameraFlash}
-          style={styles.camera}
-          mirror={cameraFacing === "front"}
-          active={!isFrozen}
-        />
-        <View style={styles.bottombar}>
-          <TouchableOpacity style={styles.button} onPress={toggleCameraFlash}>
-            <SymbolView
-              name={cameraFlash === "on" ? "bolt.fill" : "bolt.slash.fill"}
-              type="hierarchical"
-              tintColor="white"
-              size={40}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={handleTakePhoto}>
-            <SymbolView
-              name="circle"
-              type="hierarchical"
-              tintColor="white"
-              size={90}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={toggleCameraFacing}
-          >
-            <SymbolView
-              name="camera.rotate.fill"
-              type="hierarchical"
-              tintColor="white"
-              size={40}
-            />
-          </TouchableOpacity>
-        </View>
+    <View style={styles.container}>
+      <CameraView
+        ref={cameraRef}
+        facing={cameraFacing}
+        flash={cameraFlash}
+        style={styles.camera}
+        mirror={cameraFacing === "front"}
+        active={!isFrozen}
+      />
+      <View style={styles.bottombar}>
+        <TouchableOpacity style={styles.button} onPress={toggleCameraFlash}>
+          <SymbolView
+            name={cameraFlash === "on" ? "bolt.fill" : "bolt.slash.fill"}
+            type="hierarchical"
+            tintColor="white"
+            size={40}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleTakePhoto}>
+          <SymbolView
+            name="circle"
+            type="hierarchical"
+            tintColor="white"
+            size={90}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={toggleCameraFacing}
+        >
+          <SymbolView
+            name="camera.rotate.fill"
+            type="hierarchical"
+            tintColor="white"
+            size={40}
+          />
+        </TouchableOpacity>
       </View>
-    </>
+    </View>
   );
 }
 
