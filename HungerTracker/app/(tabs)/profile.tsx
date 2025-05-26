@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import PhotoBoard from "../components/PhotoBoard";
+import { Link } from "expo-router";
 
 export default function Profile() {
   // Example user data - in a real app, this would come from your backend
@@ -67,9 +68,11 @@ export default function Profile() {
       <ScrollView style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.settingsButton}>
-            <Ionicons name="settings-outline" size={24} color="#023047" />
-          </TouchableOpacity>
+          <Link href="/(stack)/settings" asChild>
+            <TouchableOpacity style={styles.settingsButton}>
+              <Ionicons name="settings-outline" size={24} color="#023047" />
+            </TouchableOpacity>
+          </Link>
         </View>
 
         {/* Profile Info */}

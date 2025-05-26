@@ -7,10 +7,17 @@ import Animated, {
     useSharedValue, 
     withSpring,
     runOnJS,
-    useAnimatedReaction
+    useAnimatedGestureHandler,
+    ReanimatedLogLevel,
+    configureReanimatedLogger
 } from 'react-native-reanimated';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+configureReanimatedLogger({ 
+    level: ReanimatedLogLevel.warn,
+    strict: false, // Reanimated runs in strict mode by default
+  });
 
 export default function Post({ post }: { post: { id: string, user: { name: string, profileImage: any }, subtitle: string, imageUrl: any, comments: number } }) {
     const scale = useSharedValue(1);
@@ -25,8 +32,8 @@ export default function Post({ post }: { post: { id: string, user: { name: strin
     const isZoomed = useSharedValue(false);
 
     // Sensitivity factors
-    const ZOOM_SENSITIVITY = 0.7;  // Reduce zoom sensitivity
-    const PAN_SENSITIVITY = 0.6;   // Reduce pan sensitivity
+    const ZOOM_SENSITIVITY = 0.7;
+    const PAN_SENSITIVITY = 0.6;
 
     // Track zoom state
     useAnimatedReaction(
@@ -44,7 +51,6 @@ export default function Post({ post }: { post: { id: string, user: { name: strin
             isInitialPinch.value = true;
         })
         .onUpdate((e) => {
-            // Apply zoom sensitivity with spring animation
             const targetScale = 1 + (e.scale - 1) * ZOOM_SENSITIVITY;
             scale.value = withSpring(targetScale, {
                 damping: 50,
@@ -58,7 +64,6 @@ export default function Post({ post }: { post: { id: string, user: { name: strin
                 const currentFocalY = e.focalY - imageCenter;
 
                 if (isInitialPinch.value) {
-                    // Initial zoom - use focal point with reduced sensitivity
                     offsetX.value = withSpring(-initialFocalX.value * (scale.value - 1) * PAN_SENSITIVITY, {
                         damping: 50,
                         stiffness: 400,
@@ -70,21 +75,19 @@ export default function Post({ post }: { post: { id: string, user: { name: strin
                         mass: 0.5
                     });
                     isInitialPinch.value = false;
-                } else {
-                    // Panning - use the difference with reduced sensitivity and spring animation
-                    const targetOffsetX = (currentFocalX - initialFocalX.value) * scale.value * PAN_SENSITIVITY;
-                    const targetOffsetY = (currentFocalY - initialFocalY.value) * scale.value * PAN_SENSITIVITY;
-                    offsetX.value = withSpring(targetOffsetX, {
-                        damping: 50,
-                        stiffness: 400,
-                        mass: 0.5
-                    });
-                    offsetY.value = withSpring(targetOffsetY, {
-                        damping: 50,
-                        stiffness: 400,
-                        mass: 0.5
-                    });
                 }
+                const targetOffsetX = (currentFocalX - initialFocalX.value) * scale.value * PAN_SENSITIVITY;
+                const targetOffsetY = (currentFocalY - initialFocalY.value) * scale.value * PAN_SENSITIVITY;
+                offsetX.value = withSpring(targetOffsetX, {
+                    damping: 50,
+                    stiffness: 400,
+                    mass: 0.5
+                });
+                offsetY.value = withSpring(targetOffsetY, {
+                    damping: 50,
+                    stiffness: 400,
+                    mass: 0.5
+                });
             }
         })
         .onEnd(() => {
@@ -107,19 +110,8 @@ export default function Post({ post }: { post: { id: string, user: { name: strin
         });
 
     const panGesture = Gesture.Pan()
-        .onUpdate((e) => {
-            if (isZoomed.value) {
-                offsetX.value = withSpring(e.translationX * PAN_SENSITIVITY, {
-                    damping: 50,
-                    stiffness: 400,
-                    mass: 0.5
-                });
-                offsetY.value = withSpring(e.translationY * PAN_SENSITIVITY, {
-                    damping: 50,
-                    stiffness: 400,
-                    mass: 0.5
-                });
-            }
+        .onUpdate(() => {
+            // Panning is handled by the pinch gesture
         })
         .minPointers(2)
         .maxPointers(2)
@@ -133,6 +125,10 @@ export default function Post({ post }: { post: { id: string, user: { name: strin
             { translateY: offsetY.value },
             { scale: scale.value },
         ],
+    }));
+
+    const isZoomed = useAnimatedStyle(() => ({
+        opacity: scale.value > 1 ? 1 : 0,
     }));
 
     return (
@@ -158,7 +154,7 @@ export default function Post({ post }: { post: { id: string, user: { name: strin
                 <Text style={styles.comments}>{post.comments}</Text>
             </View>
         </View>
-    )
+    );
 }
 
 const styles = StyleSheet.create({
