@@ -20,7 +20,7 @@ export default function Index() {
         onPress={() => setShowInvite((v) => !v)}
       >
         <Ionicons
-          name="notifications-outline"
+          name="notifications"
           size={24}
           color={colors.text[1]}
         />
@@ -63,9 +63,9 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: spacing.xl + 30,
     right: spacing.xl,
-    backgroundColor: colors.acc.p1,
+    backgroundColor: colors.bg[2],
     padding: spacing.md,
-    borderRadius: 30,
+    borderRadius: 16,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     right: spacing.xl,
     backgroundColor: colors.acc.p1,
     padding: spacing.md,
-    borderRadius: 30,
+    borderRadius: 16,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
