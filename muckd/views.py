@@ -5,14 +5,14 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.db import models
 from django.db.models import Q
-from .models import Profile, Friendship, Post, Message, Notification, PhoneVerification
+from .models import Profile, Friendship, Post, Message, Notification, PhoneVerification, Comment
 from .serializers import (
     UserSerializer, ProfileSerializer, FriendshipSerializer,
-    PostSerializer, MessageSerializer, NotificationSerializer
+    PostSerializer, MessageSerializer, NotificationSerializer, CommentSerializer
 )
 from .services import generate_verification_code, send_verification_sms
 from phonenumber_field.phonenumber import PhoneNumber
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.conf import settings
 from twilio.rest import Client
 from django.contrib import messages
@@ -23,6 +23,7 @@ import random
 import logging
 from django.core.files.storage import default_storage
 from storages.backends.s3boto3 import S3Boto3Storage
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -95,16 +96,139 @@ class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get', 'post', 'patch', 'put', 'delete']
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get', 'patch'])
     def me(self, request):
         try:
             profile = Profile.objects.get(user=request.user)
         except Profile.DoesNotExist:
             # Create profile if it doesn't exist
             profile = Profile.objects.create(user=request.user)
+        
+        if request.method == 'PATCH':
+            # Handle user fields
+            user_fields = ['first_name', 'last_name', 'username', 'bio']
+            for field in user_fields:
+                if field in request.data:
+                    setattr(request.user, field, request.data[field])
+            
+            # Handle profile image
+            if 'profile_image' in request.FILES:
+                profile.profile_image = request.FILES['profile_image']
+            
+            # Handle location update
+            if 'location' in request.data:
+                try:
+                    location_data = request.data['location']
+                    if isinstance(location_data, str):
+                        location_data = json.loads(location_data)
+                    request.user.location = location_data
+                    request.user.last_location_update = timezone.now()
+                except json.JSONDecodeError:
+                    return Response(
+                        {'error': 'Invalid location format'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            
+            # Handle location sharing mode update
+            if 'location_sharing_mode' in request.data:
+                request.user.location_sharing_mode = request.data['location_sharing_mode']
+            
+            # Handle selected friends update
+            if 'selected_friends' in request.data:
+                request.user.selected_friends.clear()
+                if request.data['selected_friends']:
+                    request.user.selected_friends.add(*request.data['selected_friends'])
+            
+            # Save both user and profile
+            request.user.save()
+            profile.save()
+            
+            # Return updated profile data
+            serializer = self.get_serializer(profile)
+            return Response(serializer.data)
+        
         serializer = self.get_serializer(profile)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def friends_locations(self, request):
+        # Get all accepted friendships
+        friendships = Friendship.objects.filter(
+            (models.Q(sender=request.user) | models.Q(receiver=request.user)),
+            status='accepted'
+        )
+        
+        # Get friends' profiles with their locations
+        friends_data = []
+        for friendship in friendships:
+            friend = friendship.receiver if friendship.sender == request.user else friendship.sender
+            
+            # Skip if friend has set their location to invisible
+            if friend.location_sharing_mode == 'invisible':
+                continue
+                
+            # Check if friend has allowed this user to see their location
+            should_show_location = False
+            if friend.location_sharing_mode == 'all_friends':
+                should_show_location = True
+            elif friend.location_sharing_mode == 'select_friends':
+                should_show_location = friend.selected_friends.filter(id=request.user.id).exists()
+            
+            if should_show_location and friend.location is not None:
+                friends_data.append({
+                    'id': friend.id,
+                    'name': f"{friend.first_name} {friend.last_name}",
+                    'location': friend.location,
+                    'last_location_update': friend.last_location_update,
+                    'profile_image': friend.profile.profile_image.url if friend.profile.profile_image else None
+                })
+        
+        return Response(friends_data)
+
+    def retrieve(self, request, pk=None):
+        # pk is user_id
+        try:
+            profile = Profile.objects.get(user__id=pk)
+        except Profile.DoesNotExist:
+            return Response({'detail': 'Profile not found.'}, status=404)
+        serializer = self.get_serializer(profile)
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        if 'location' in request.data:
+            try:
+                # Try to parse location as JSON if it's a string
+                location_data = request.data['location']
+                if isinstance(location_data, str):
+                    location_data = json.loads(location_data)
+                request.user.location = location_data
+                request.user.last_location_update = timezone.now()
+                request.user.save()
+            except json.JSONDecodeError:
+                return Response(
+                    {'error': 'Invalid location format'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        if 'location' in request.data:
+            try:
+                # Try to parse location as JSON if it's a string
+                location_data = request.data['location']
+                if isinstance(location_data, str):
+                    location_data = json.loads(location_data)
+                request.user.location = location_data
+                request.user.last_location_update = timezone.now()
+                request.user.save()
+            except json.JSONDecodeError:
+                return Response(
+                    {'error': 'Invalid location format'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        return super().partial_update(request, *args, **kwargs)
 
     @action(detail=True, methods=['post'])
     def toggle_hungry(self, request, pk=None):
@@ -137,6 +261,15 @@ class FriendshipViewSet(viewsets.ModelViewSet):
         return Friendship.objects.filter(
             models.Q(sender=user) | models.Q(receiver=user)
         ).order_by('-created_at')
+
+    @action(detail=False, methods=['get'], url_path='user/(?P<user_id>[^/.]+)')
+    def user_friends(self, request, user_id=None):
+        friendships = Friendship.objects.filter(
+            (models.Q(sender__id=user_id) | models.Q(receiver__id=user_id)),
+            status='accepted'
+        )
+        serializer = self.get_serializer(friendships, many=True)
+        return Response(serializer.data)
 
     @action(detail=False, methods=['post'])
     def send(self, request):
@@ -226,9 +359,15 @@ class FriendshipViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all()
+    queryset = Post.objects.all().order_by('-created_at').distinct()
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
+
+    @action(detail=False, methods=['get'], url_path='user/(?P<user_id>[^/.]+)')
+    def user_posts(self, request, user_id=None):
+        posts = Post.objects.filter(user__id=user_id).order_by('-created_at')
+        serializer = self.get_serializer(posts, many=True)
+        return Response(serializer.data)
 
     def perform_create(self, serializer):
         logger.info("=== Starting post creation process ===")
@@ -306,7 +445,7 @@ class PostViewSet(viewsets.ModelViewSet):
             
             # Notify friends
             friends = Friendship.objects.filter(
-                (Q(sender=self.request.user) | Q(receiver=self.request.user)),
+                (models.Q(sender=self.request.user) | models.Q(receiver=self.request.user)),
                 status='accepted'
             )
             
@@ -325,6 +464,19 @@ class PostViewSet(viewsets.ModelViewSet):
             if hasattr(e, 'response'):
                 logger.error(f"Error response: {e.response}")
             raise
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        post_id = self.kwargs.get('post_pk')
+        return Comment.objects.filter(post_id=post_id)
+
+    def perform_create(self, serializer):
+        post_id = self.kwargs.get('post_pk')
+        post = get_object_or_404(Post, id=post_id)
+        serializer.save(user=self.request.user, post=post)
 
 class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.all()

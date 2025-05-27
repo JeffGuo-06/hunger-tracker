@@ -58,6 +58,19 @@ class Post(models.Model):
     def __str__(self):
         return f"{self.user.username}'s post at {self.created_at}"
 
+class Comment(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey('muckd.User', on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.user.username}'s comment on {self.post}"
+
 class Message(models.Model):
     sender = models.ForeignKey('muckd.User', related_name='sent_messages', on_delete=models.CASCADE)
     receiver = models.ForeignKey('muckd.User', related_name='received_messages', on_delete=models.CASCADE)
@@ -93,10 +106,29 @@ class Notification(models.Model):
         return f"Notification for {self.user.username}: {self.notification_type}"
 
 class User(AbstractUser):
+    email = models.EmailField(unique=True)
     phone_number = PhoneNumberField(unique=True, null=True, blank=True)
     is_phone_verified = models.BooleanField(default=False)
-    bio = models.TextField(max_length=500, blank=True, default="")
-    location = models.CharField(max_length=100, default="unset location")
+    bio = models.TextField(max_length=500, blank=True)
+    location = models.JSONField(null=True, blank=True)  # GPS location for tracking
+    display_location = models.CharField(max_length=100, blank=True)  # Display location (city, etc.)
+    last_location_update = models.DateTimeField(null=True, blank=True)
+    location_sharing_mode = models.CharField(
+        max_length=20,
+        choices=[
+            ('invisible', 'Invisible'),
+            ('all_friends', 'All Friends'),
+            ('select_friends', 'Select Friends')
+        ],
+        default='all_friends'
+    )
+    selected_friends = models.ManyToManyField('self', symmetrical=False, blank=True, related_name='can_see_location')
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
+
+    def __str__(self):
+        return self.email
 
 class PhoneVerification(models.Model):
     user = models.ForeignKey('muckd.User', on_delete=models.CASCADE)

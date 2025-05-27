@@ -10,14 +10,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 interface FormData {
   phoneNumber: string;
   verificationCode: string;
-  username: string;
+  email: string;
   password: string;
 }
 
 interface FormErrors {
   phoneNumber?: string;
   verificationCode?: string;
-  username?: string;
+  email?: string;
   password?: string;
 }
 
@@ -25,7 +25,7 @@ export default function Login() {
   const [formData, setFormData] = useState<FormData>({
     phoneNumber: '',
     verificationCode: '',
-    username: '',
+    email: '',
     password: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -47,8 +47,11 @@ export default function Login() {
     return "";
   };
 
-  const validateUsername = (username: string) => {
-    if (!username) return "Username is required";
+  const validateEmail = (email: string) => {
+    if (!email) return "Email is required";
+    if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(email)) {
+      return "Please enter a valid email address";
+    }
     return "";
   };
 
@@ -118,12 +121,12 @@ export default function Login() {
   };
 
   const handleEmailLogin = async () => {
-    const usernameError = validateUsername(formData.username);
+    const emailError = validateEmail(formData.email);
     const passwordError = validatePassword(formData.password);
 
-    if (usernameError || passwordError) {
+    if (emailError || passwordError) {
       setErrors({
-        username: usernameError,
+        email: emailError,
         password: passwordError,
       });
       return;
@@ -131,7 +134,7 @@ export default function Login() {
 
     try {
       setLoading(true);
-      const response = await auth.login(formData.username, formData.password);
+      const response = await auth.login(formData.email, formData.password);
       
       // Store the JWT token
       if (response.access) {
@@ -146,7 +149,7 @@ export default function Login() {
       console.error('Login error:', error.response?.data || error.message);
       Alert.alert(
         'Error',
-        error.response?.data?.detail || 'Invalid username or password. Please try again.'
+        error.response?.data?.detail || 'Invalid email or password. Please try again.'
       );
     } finally {
       setLoading(false);
@@ -315,20 +318,21 @@ export default function Login() {
           ) : (
             <>
               {renderInput(
-                'Username',
-                formData.username,
+                'Email',
+                formData.email,
                 (text) => {
-                  setFormData({ ...formData, username: text });
-                  if (errors.username) {
-                    setErrors({ ...errors, username: undefined });
+                  setFormData({ ...formData, email: text });
+                  if (errors.email) {
+                    setErrors({ ...errors, email: undefined });
                   }
                 },
-                errors.username,
+                errors.email,
                 {
-                  placeholder: 'Enter your username',
+                  placeholder: 'Enter your email',
+                  keyboardType: 'email-address',
                   autoCapitalize: 'none',
-                  autoComplete: 'username',
-                  icon: 'person-outline',
+                  autoComplete: 'email',
+                  icon: 'mail-outline',
                 }
               )}
 
@@ -351,9 +355,9 @@ export default function Login() {
               )}
 
               <TouchableOpacity
-                style={[styles.button, (!formData.username || !formData.password || loading) && styles.buttonDisabled]}
+                style={[styles.button, (!formData.email || !formData.password || loading) && styles.buttonDisabled]}
                 onPress={handleEmailLogin}
-                disabled={loading || !formData.username || !formData.password}
+                disabled={loading || !formData.email || !formData.password}
               >
                 <Text style={styles.buttonText}>
                   {loading ? 'Logging in...' : 'Log In'}

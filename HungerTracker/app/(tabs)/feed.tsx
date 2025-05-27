@@ -19,6 +19,18 @@ interface PostData {
   caption: string;
   created_at: string;
   comments_count: number;
+  comments: {
+    id: string;
+    user: {
+      id: number;
+      username: string;
+      first_name: string;
+      last_name: string;
+      profile_image: string | null;
+    };
+    content: string;
+    created_at: string;
+  }[];
 }
 
 export default function Feed() {
@@ -42,6 +54,14 @@ export default function Feed() {
           name: `${post.user.first_name} ${post.user.last_name}`,
           profileImage: post.user.profile_image || undefined,
         },
+        comments: post.comments?.map((comment: any) => ({
+          ...comment,
+          user: {
+            ...comment.user,
+            name: `${comment.user.first_name} ${comment.user.last_name}`,
+            profileImage: comment.user.profile_image || undefined,
+          },
+        })) || [],
       }));
       setFeedPosts(transformedPosts);
     } catch (err) {

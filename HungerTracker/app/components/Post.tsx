@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
@@ -10,8 +10,20 @@ import Animated, {
     useAnimatedReaction
 } from 'react-native-reanimated';
 import { Image } from 'expo-image';
+import { useState } from 'react';
+import { posts } from '../services/api';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+interface Comment {
+    id: string;
+    user: {
+        name: string;
+        profileImage: string;
+    };
+    content: string;
+    created_at: string;
+}
 
 interface PostProps {
     post: {
@@ -24,10 +36,30 @@ interface PostProps {
         caption: string;
         created_at: string;
         comments_count: number;
+        comments: Comment[];
     };
 }
 
 export default function Post({ post }: PostProps) {
+    const [comment, setComment] = useState('');
+    const [comments, setComments] = useState<Comment[]>(post.comments || []);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleAddComment = async () => {
+        if (!comment.trim()) return;
+        
+        try {
+            setIsLoading(true);
+            const newComment = await posts.addComment(post.id, comment.trim());
+            setComments([...comments, newComment]);
+            setComment('');
+        } catch (error) {
+            console.error('Error adding comment:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const scale = useSharedValue(1);
     const offsetX = useSharedValue(0);
     const offsetY = useSharedValue(0);
@@ -190,9 +222,34 @@ export default function Post({ post }: PostProps) {
                     <Text style={styles.caption}>{post.caption}</Text>
                 </View>
             )}
-            <View style={styles.infoContainer}>
-                <Ionicons name="chatbubble-outline" size={24} color={colors.acc.p1} />
-                <Text style={styles.comments}>{post.comments_count}</Text>
+            <View style={styles.commentsSection}>
+                {comments.map((comment) => (
+                    <View key={comment.id} style={styles.commentContainer}>
+                        <Text style={styles.commentUser}>{comment.user.name}</Text>
+                        <Text style={styles.commentText}>{comment.content}</Text>
+                    </View>
+                ))}
+            </View>
+            <View style={styles.commentInputContainer}>
+                <TextInput
+                    style={styles.commentInput}
+                    placeholder="Add a comment..."
+                    placeholderTextColor="white"
+                    value={comment}
+                    onChangeText={setComment}
+                    multiline
+                />
+                <TouchableOpacity 
+                    style={[styles.commentButton, !comment.trim() && styles.commentButtonDisabled]}
+                    onPress={handleAddComment}
+                    disabled={!comment.trim() || isLoading}
+                >
+                    <Ionicons 
+                        name="send" 
+                        size={24} 
+                        color={comment.trim() ? colors.acc.p1 : colors.text[2]} 
+                    />
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -242,13 +299,43 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: colors.text[1],
     },
-    infoContainer: {
+    commentsSection: {
+        padding: 10,
+    },
+    commentContainer: {
+        marginBottom: 8,
+    },
+    commentUser: {
+        fontWeight: 'bold',
+        fontSize: 14,
+        color: colors.text[1],
+        marginBottom: 2,
+    },
+    commentText: {
+        fontSize: 14,
+        color: colors.text[1],
+    },
+    commentInputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         padding: 10,
+        borderTopWidth: 1,
+        borderTopColor: colors.bg[1],
     },
-    comments: {
-        marginLeft: 5,
-        color: colors.text[2],
+    commentInput: {
+        flex: 1,
+        backgroundColor: colors.bg[1],
+        borderRadius: 20,
+        paddingHorizontal: 15,
+        paddingVertical: 8,
+        marginRight: 10,
+        color: colors.text[1],
+        maxHeight: 100,
+    },
+    commentButton: {
+        padding: 5,
+    },
+    commentButtonDisabled: {
+        opacity: 0.5,
     },
 });

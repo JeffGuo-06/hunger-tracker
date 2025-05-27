@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { colors } from '../theme';
 import { auth, users } from '../services/api';
+import { useRouter } from "expo-router";
 
 interface Friend {
   id: number;
@@ -26,6 +27,7 @@ export default function FriendsList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const router = useRouter();
 
   const fetchProfile = async () => {
     try {
@@ -81,7 +83,10 @@ export default function FriendsList() {
 
     return (
       <View style={styles.friendItem}>
-        <View style={styles.friendInfo}>
+        <TouchableOpacity
+          style={styles.friendInfo}
+          onPress={() => router.push({ pathname: '/profile', params: { userId: friend.id } })}
+        >
           <View style={styles.nameContainer}>
             <Text style={styles.friendName}>
               {friend.first_name} {friend.last_name}
@@ -90,7 +95,7 @@ export default function FriendsList() {
               @{friend.username}
             </Text>
           </View>
-        </View>
+        </TouchableOpacity>
         {isPending && isReceiver && (
           <View style={styles.actionButtons}>
             <TouchableOpacity

@@ -14,7 +14,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import PhotoBoard from "../components/PhotoBoard";
 import { auth, posts } from "../services/api";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import SettingsModal from "../components/SettingsModal";
 
 const API_URL = 'http://192.168.40.242:8000';
 
@@ -28,7 +29,11 @@ interface UserProfile {
     last_name: string;
     phone_number: string;
     bio: string;
-    location: string;
+    location: {
+      latitude: number;
+      longitude: number;
+    } | null;
+    display_location: string;
   };
   profile_image: string | null;
   last_ate: string | null;
@@ -45,45 +50,54 @@ interface UserPost {
 }
 
 export default function Profile() {
+  const { userId } = useLocalSearchParams();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [userPosts, setUserPosts] = useState<UserPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [friendsCount, setFriendsCount] = useState(0);
+  const [isSettingsVisible, setIsSettingsVisible] = useState(false);
 
   useEffect(() => {
-    fetchProfile();
-    fetchFriendsCount();
-    fetchUserPosts();
-  }, []);
-
-  const fetchProfile = async () => {
-    try {
+    const loadProfileAndPosts = async () => {
       setLoading(true);
-      const response = await auth.getProfile();
-      setUser(response);
-    } catch (err: any) {
-      console.error('Error fetching profile:', err);
-      setError(err.message || 'Failed to load profile');
-    } finally {
-      setLoading(false);
-    }
-  };
+      try {
+        let profile;
+        let id;
+        let resolvedUserId = Array.isArray(userId) ? userId[0] : userId;
+        if (resolvedUserId) {
+          // Fetch another user's profile
+          profile = await auth.getProfileById(resolvedUserId);
+          id = resolvedUserId;
+        } else {
+          // Fetch current user's profile
+          profile = await auth.getProfile();
+          id = profile.user.id;
+        }
+        setUser(profile);
+        await fetchUserPosts(Number(id));
+        await fetchFriendsCount(Number(id));
+      } catch (err: any) {
+        setError(err.message || 'Failed to load profile');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProfileAndPosts();
+  }, [userId]);
 
-  const fetchUserPosts = async () => {
+  const fetchUserPosts = async (userId: number) => {
     try {
-      const response = await posts.getAll();
-      // Filter posts for the current user
-      const currentUserPosts = response.filter((post: any) => post.user.id === user?.user.id);
-      setUserPosts(currentUserPosts);
+      const response = await posts.getUserPosts(userId);
+      setUserPosts(response);
     } catch (err) {
       console.error('Error fetching user posts:', err);
     }
   };
 
-  const fetchFriendsCount = async () => {
+  const fetchFriendsCount = async (userId: number) => {
     try {
-      const response = await auth.getFriends();
+      const response = await auth.getFriendsOfUser(userId);
       const acceptedFriends = response.data.filter(
         (friend: any) => friend.status === 'accepted'
       );
@@ -100,6 +114,30 @@ export default function Profile() {
     } catch (error) {
       console.error('Logout error:', error);
       Alert.alert('Error', 'Failed to logout. Please try again.');
+    }
+  };
+
+  const handleProfileUpdate = async () => {
+    try {
+      setLoading(true); // Show loading state
+      let profile;
+      let id;
+      let resolvedUserId = Array.isArray(userId) ? userId[0] : userId;
+      if (resolvedUserId) {
+        profile = await auth.getProfileById(resolvedUserId);
+        id = resolvedUserId;
+      } else {
+        profile = await auth.getProfile();
+        id = profile.user.id;
+      }
+      setUser(profile);
+      await fetchUserPosts(Number(id));
+      await fetchFriendsCount(Number(id));
+    } catch (err: any) {
+      console.error('Error updating profile:', err);
+      Alert.alert('Error', 'Failed to update profile. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -124,7 +162,9 @@ export default function Profile() {
   }
 
   const profileImageUrl = user.profile_image 
-    ? `${API_URL}${user.profile_image}`
+    ? user.profile_image.startsWith('http') 
+      ? user.profile_image 
+      : `${API_URL}${user.profile_image}`
     : null;
 
   // Transform posts for PhotoBoard
@@ -134,14 +174,27 @@ export default function Profile() {
     comments: 0, // You can add comments count if needed
   }));
 
+  const formatLocation = (location: { latitude: number; longitude: number } | null) => {
+    return 'Location not set';
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.settingsButton}>
-            <Ionicons name="settings-outline" size={24} color="#023047" />
-          </TouchableOpacity>
+          {userId ? (
+            <TouchableOpacity style={styles.backButton} onPress={() => router.replace('/profile')}>
+              <Ionicons name="arrow-back" size={24} color="#FFA500" />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity 
+              style={styles.settingsButton} 
+              onPress={() => setIsSettingsVisible(true)}
+            >
+              <Ionicons name="settings-outline" size={24} color="#FFA500" />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Profile Info */}
@@ -156,12 +209,16 @@ export default function Profile() {
               <Ionicons name="person" size={60} color="#9E9E9E" />
             </View>
           )}
-          <Text style={styles.name}>{`${user.user.first_name} ${user.user.last_name}`}</Text>
-          <Text style={styles.username}>@{user.user.username}</Text>
-          <Text style={styles.bio}>{user.user.bio || 'No bio yet'}</Text>
-          <View style={styles.locationContainer}>
-            <Ionicons name="location-outline" size={16} color="#666" />
-            <Text style={styles.location}>{user.user.location}</Text>
+          <View style={styles.userInfo}>
+            <Text style={styles.name}>{user.user.first_name} {user.user.last_name}</Text>
+            <Text style={styles.username}>@{user.user.username}</Text>
+            {user.user.bio && <Text style={styles.bio}>{user.user.bio}</Text>}
+            {user.user.display_location && (
+              <View style={styles.locationContainer}>
+                <Ionicons name="location-outline" size={16} color={colors.text[2]} />
+                <Text style={styles.location}>{user.user.display_location}</Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -205,6 +262,17 @@ export default function Profile() {
           <Text style={styles.logoutButtonText}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Settings Modal */}
+      {user && (
+        <SettingsModal
+          visible={isSettingsVisible}
+          onClose={() => setIsSettingsVisible(false)}
+          user={user.user}
+          profileImage={profileImageUrl}
+          onProfileUpdate={handleProfileUpdate}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -218,9 +286,6 @@ const styles = StyleSheet.create({
     padding: 16,
     flexDirection: "row",
     justifyContent: "flex-end",
-  },
-  settingsButton: {
-    padding: 8,
   },
   logoutButtonContainer: {
     flexDirection: 'row',
@@ -250,6 +315,10 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     marginBottom: 16,
   },
+  userInfo: {
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
   name: {
     fontSize: 24,
     fontWeight: "bold",
@@ -268,13 +337,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   locationContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
   },
   location: {
     fontSize: 14,
-    color: colors.text[3],
+    color: colors.text[2],
     marginLeft: 4,
   },
   statsContainer: {
@@ -371,5 +440,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg[3],
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  backButton: {
+    padding: 8,
+    marginRight: 8,
+  },
+  settingsButton: {
+    padding: 8,
+    marginRight: 8,
   },
 });

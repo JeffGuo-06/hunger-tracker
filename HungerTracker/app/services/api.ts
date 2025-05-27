@@ -88,7 +88,7 @@ const formatPhoneNumber = (phoneNumber: string) => {
 // Auth endpoints
 export const auth = {
   login: async (email: string, password: string) => {
-    const response = await api.post('/api/token/', { username: email, password });
+    const response = await api.post('/api/token/', { email, password });
     const { access, refresh } = response.data;
     await AsyncStorage.setItem('token', access);
     await AsyncStorage.setItem('refreshToken', refresh);
@@ -150,12 +150,17 @@ export const auth = {
     const response = await api.get('/api/profiles/me/');
     return response.data;
   },
+  getProfileById: async (userId: number | string) => {
+    const response = await api.get(`/api/profiles/${userId}/`);
+    return response.data;
+  },
   logout: async () => {
     await AsyncStorage.removeItem('token');
     await AsyncStorage.removeItem('refreshToken');
   },
   // Friend-related endpoints
   getFriends: () => api.get('/api/friendships/'),
+  getFriendsOfUser: (userId: number | string) => api.get(`/api/friendships/user/${userId}/`),
   sendFriendRequest: (username: string) => api.post('/api/friendships/send/', { username }),
   acceptFriendRequest: (friendshipId: number) => api.post(`/api/friendships/${friendshipId}/accept/`),
   rejectFriendRequest: (friendshipId: number) => api.post(`/api/friendships/${friendshipId}/reject/`),
@@ -169,7 +174,31 @@ export const users = {
     return response.data;
   },
   updateProfile: async (data: any) => {
-    const response = await api.patch('/api/profiles/me/', data);
+    let response;
+    if (data instanceof FormData) {
+      response = await api.patch('/api/profiles/me/', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+    } else {
+      response = await api.patch('/api/profiles/me/', data);
+    }
+    return response.data;
+  },
+  updateLocation: async (location: string) => {
+    const response = await api.patch('/api/profiles/me/', { location });
+    return response.data;
+  },
+  updateLocationSharing: async (mode: 'invisible' | 'all_friends' | 'select_friends', selectedFriends?: number[]) => {
+    const response = await api.patch('/api/profiles/me/', { 
+      location_sharing_mode: mode,
+      selected_friends: selectedFriends || []
+    });
+    return response.data;
+  },
+  getFriendsLocations: async () => {
+    const response = await api.get('/api/profiles/friends_locations/');
     return response.data;
   },
 };
@@ -186,6 +215,18 @@ export const posts = {
         'Content-Type': 'multipart/form-data',
       },
     });
+    return response.data;
+  },
+  getUserPosts: async (userId: number) => {
+    const response = await api.get(`/api/posts/user/${userId}/`);
+    return response.data;
+  },
+  getComments: async (postId: string) => {
+    const response = await api.get(`/api/posts/${postId}/comments/`);
+    return response.data;
+  },
+  addComment: async (postId: string, content: string) => {
+    const response = await api.post(`/api/posts/${postId}/comments/`, { content });
     return response.data;
   },
 };

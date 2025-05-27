@@ -51,3 +51,5 @@ web-build/
 .vscode/
 *.swp
 *.swo 
+
+debug.log
