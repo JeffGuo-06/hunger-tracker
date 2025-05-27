@@ -4,15 +4,14 @@ import {
   Text,
   StyleSheet,
   Dimensions,
-  FlatList,
   TouchableOpacity,
   Image,
 } from 'react-native';
 import { colors } from '../theme';
 import Animated, {
+  useSharedValue,
   useAnimatedStyle,
   interpolate,
-  useSharedValue,
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
 
@@ -42,7 +41,7 @@ const slides = [
 export default function HeroCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollX = useSharedValue(0);
-  const slidesRef = useRef<FlatList>(null);
+  const slidesRef = useRef<Animated.FlatList>(null);
 
   const viewableItemsChanged = useRef(({ viewableItems }: any) => {
     if (viewableItems[0]) {
@@ -117,7 +116,7 @@ export default function HeroCarousel() {
 
   return (
     <View style={styles.container}>
-      <FlatList
+      <Animated.FlatList
         data={slides}
         renderItem={renderItem}
         horizontal

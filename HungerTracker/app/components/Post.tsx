@@ -1,4 +1,4 @@
-import { View, Text, Image, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, Image, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
@@ -11,13 +11,14 @@ import Animated, {
     ReanimatedLogLevel,
     configureReanimatedLogger
 } from 'react-native-reanimated';
+import { Link } from 'expo-router';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 configureReanimatedLogger({ 
     level: ReanimatedLogLevel.warn,
     strict: false, // Reanimated runs in strict mode by default
-  });
+});
 
 export default function Post({ post }: { post: { id: string, user: { name: string, profileImage: any }, subtitle: string, imageUrl: any, comments: number } }) {
     const scale = useSharedValue(1);
@@ -98,7 +99,7 @@ export default function Post({ post }: { post: { id: string, user: { name: strin
                 mass: 0.5
             });
             isInitialPinch.value = true;
-        });
+        }); 
 
     const panGesture = Gesture.Pan()
         .onUpdate(() => {
@@ -118,19 +119,21 @@ export default function Post({ post }: { post: { id: string, user: { name: strin
         ],
     }));
 
-    const isZoomed = useAnimatedStyle(() => ({
+    const zoomIndicatorStyle = useAnimatedStyle(() => ({
         opacity: scale.value > 1 ? 1 : 0,
     }));
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
-                <Image source={post.user.profileImage} style={styles.profileImage} />
-                <View style={styles.userInfo}>
-                    <Text style={styles.userName}>{post.user.name}</Text>
-                    <Text style={styles.subtitle}>{post.subtitle}</Text>
-                </View>
-            </View>
+            <Link href="/(stack)/viewprofile" asChild>
+                <TouchableOpacity style={styles.header}>
+                    <Image source={post.user.profileImage} style={styles.profileImage} />
+                    <View style={styles.userInfo}>
+                        <Text style={styles.userName}>{post.user.name}</Text>
+                        <Text style={styles.subtitle}>{post.subtitle}</Text>
+                    </View>
+                </TouchableOpacity>
+            </Link>
             <GestureDetector gesture={composed}>
                 <Animated.View style={styles.imageContainer}>
                     <Animated.Image 

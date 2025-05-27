@@ -71,6 +71,6 @@ export default function Feed() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg[2],
+    backgroundColor: colors.bg[1],  
   },
 });
