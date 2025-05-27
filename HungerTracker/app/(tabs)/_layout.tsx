@@ -6,7 +6,7 @@ import { colors } from "../theme";
 
 export default function TabLayout() {
   return (
-    <Tabs screenOptions={{ tabBarStyle: { backgroundColor: colors.bg[1], borderTopColor: colors.bg[2] }, tabBarActiveTintColor: colors.bg[4], tabBarInactiveTintColor: colors.text[2], headerShown: false }}>
+    <Tabs screenOptions={{ tabBarStyle: { backgroundColor: colors.bg[1], borderTopColor: colors.bg[2] }, tabBarActiveTintColor: colors.bg[4], tabBarInactiveTintColor: colors.text[2], headerShown: false}}>
       <Tabs.Screen
         name="index"
         options={{
@@ -14,7 +14,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => (
             <FontAwesome size={28} name="home" color={color} />
           ),
-        }}
+        }}  
       />
       <Tabs.Screen
         name="feed"

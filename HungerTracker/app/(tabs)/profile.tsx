@@ -70,7 +70,7 @@ export default function Profile() {
         <View style={styles.header}>
           <Link href="/(stack)/settings" asChild>
             <TouchableOpacity style={styles.settingsButton}>
-              <Ionicons name="settings-outline" size={24} color="#023047" />
+              <Ionicons name="settings-outline" size={24} color={colors.text[1]} />
             </TouchableOpacity>
           </Link>
         </View>
@@ -96,10 +96,12 @@ export default function Profile() {
             <Text style={styles.statNumber}>{user.stats.mucks}</Text>
             <Text style={styles.statLabel}>Mucks</Text>
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{user.stats.friends}</Text>
-            <Text style={styles.statLabel}>Friends</Text>
-          </View>
+          <Link href="/(tabs)/friends" asChild>
+            <TouchableOpacity style={styles.statItem}>
+              <Text style={styles.statNumber}>{user.stats.friends}</Text>
+              <Text style={styles.statLabel}>Friends</Text>
+            </TouchableOpacity>
+          </Link>
         </View>
 
         {/* Action Buttons */}
