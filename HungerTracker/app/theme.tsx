@@ -15,6 +15,7 @@ export const colors = {
     3: "#AFAFAF",    // Background 3
     4: "#FFFFFF",    // Background 4
   },
+  border: "#2B2B2B",  // Border color
 };
 
 export const spacing = {

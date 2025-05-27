@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, Text, ActivityIndicator, Image, Modal, TouchableOpacity, ScrollView } from "react-native";
+import { View, StyleSheet, Text, ActivityIndicator, Image } from "react-native";
 import MapView, { Marker, Region, PROVIDER_GOOGLE } from "react-native-maps";
 import * as Location from "expo-location";
 import { users } from "../services/api";
@@ -26,8 +26,6 @@ interface UserLocation {
   };
 }
 
-type LocationSharingMode = 'invisible' | 'all_friends' | 'select_friends';
-
 const DEFAULT_REGION: Region = {
   latitude: 37.7749,
   longitude: -122.4194,
@@ -43,10 +41,7 @@ export default function MapScreen() {
   const [userLocations, setUserLocations] = useState<UserLocation[]>([]);
   const [currentUser, setCurrentUser] = useState<UserLocation | null>(null);
   const [selectedMarker, setSelectedMarker] = useState<number | null>(null);
-  const [isSettingsVisible, setIsSettingsVisible] = useState(false);
-  const [sharingMode, setSharingMode] = useState<LocationSharingMode>('all_friends');
-  const [selectedFriends, setSelectedFriends] = useState<number[]>([]);
-  const [allFriends, setAllFriends] = useState<UserLocation[]>([]);
+  const [loadingAvatars, setLoadingAvatars] = useState<Record<number, boolean>>({});
 
   const updateLocation = async (coords: Location.LocationObjectCoords) => {
     try {
@@ -85,7 +80,6 @@ export default function MapScreen() {
 
       // Fetch friends' locations
       const friendsLocations = await users.getFriendsLocations();
-      setAllFriends(friendsLocations);
       
       // Only include friends who have shared their location
       const visibleLocations = friendsLocations.filter((friend: UserLocation) => 
@@ -108,34 +102,6 @@ export default function MapScreen() {
       }).filter((location: UserLocation | null): location is UserLocation => location !== null));
     } catch (error) {
       console.error('Error fetching user locations:', error);
-    }
-  };
-
-  const handleSharingModeChange = async (mode: LocationSharingMode) => {
-    try {
-      await users.updateLocationSharing(mode, mode === 'select_friends' ? selectedFriends : []);
-      setSharingMode(mode);
-      if (mode === 'all_friends') {
-        setSelectedFriends([]);
-      }
-    } catch (error) {
-      console.error('Error updating location sharing settings:', error);
-    }
-  };
-
-  const toggleFriendSelection = async (friendId: number) => {
-    const newSelectedFriends = selectedFriends.includes(friendId)
-      ? selectedFriends.filter(id => id !== friendId)
-      : [...selectedFriends, friendId];
-    
-    setSelectedFriends(newSelectedFriends);
-    
-    if (sharingMode === 'select_friends') {
-      try {
-        await users.updateLocationSharing('select_friends', newSelectedFriends);
-      } catch (error) {
-        console.error('Error updating selected friends:', error);
-      }
     }
   };
 
@@ -176,10 +142,6 @@ export default function MapScreen() {
     })();
   }, []);
 
-  useEffect(() => {
-    fetchUserLocations();
-  }, [sharingMode, selectedFriends]);
-
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -201,97 +163,9 @@ export default function MapScreen() {
     return `${name} (Last updated: ${formatTimestamp(lastUpdate || '')})`;
   };
 
-  const renderSettingsModal = () => (
-    <Modal
-      visible={isSettingsVisible}
-      animationType="slide"
-      transparent={true}
-      onRequestClose={() => setIsSettingsVisible(false)}
-    >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Location Sharing</Text>
-            <TouchableOpacity onPress={() => setIsSettingsVisible(false)}>
-              <Ionicons name="close" size={24} color={colors.text[1]} />
-            </TouchableOpacity>
-          </View>
-          
-          <View style={styles.sharingOptions}>
-            <TouchableOpacity
-              style={[styles.sharingOption, sharingMode === 'invisible' && styles.selectedOption]}
-              onPress={() => handleSharingModeChange('invisible')}
-            >
-              <Ionicons 
-                name="eye-off" 
-                size={24} 
-                color={sharingMode === 'invisible' ? colors.acc.p1 : colors.text[1]} 
-              />
-              <Text style={[styles.optionText, sharingMode === 'invisible' && styles.selectedText]}>
-                Invisible
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.sharingOption, sharingMode === 'all_friends' && styles.selectedOption]}
-              onPress={() => handleSharingModeChange('all_friends')}
-            >
-              <Ionicons 
-                name="people" 
-                size={24} 
-                color={sharingMode === 'all_friends' ? colors.acc.p1 : colors.text[1]} 
-              />
-              <Text style={[styles.optionText, sharingMode === 'all_friends' && styles.selectedText]}>
-                All Friends
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.sharingOption, sharingMode === 'select_friends' && styles.selectedOption]}
-              onPress={() => handleSharingModeChange('select_friends')}
-            >
-              <Ionicons 
-                name="person-add" 
-                size={24} 
-                color={sharingMode === 'select_friends' ? colors.acc.p1 : colors.text[1]} 
-              />
-              <Text style={[styles.optionText, sharingMode === 'select_friends' && styles.selectedText]}>
-                Select Friends
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {sharingMode === 'select_friends' && (
-            <ScrollView style={styles.friendsList}>
-              {allFriends.map(friend => (
-                <TouchableOpacity
-                  key={friend.id}
-                  style={styles.friendItem}
-                  onPress={() => toggleFriendSelection(friend.id)}
-                >
-                  <View style={styles.friendInfo}>
-                    {friend.profile_image ? (
-                      <Image source={{ uri: friend.profile_image }} style={styles.friendAvatar} />
-                    ) : (
-                      <View style={[styles.friendAvatar, styles.defaultAvatar]}>
-                        <Ionicons name="person" size={24} color={colors.text[2]} />
-                      </View>
-                    )}
-                    <Text style={styles.friendName}>{friend.name}</Text>
-                  </View>
-                  <Ionicons
-                    name={selectedFriends.includes(friend.id) ? "checkbox" : "square-outline"}
-                    size={24}
-                    color={selectedFriends.includes(friend.id) ? colors.acc.p1 : colors.text[2]}
-                  />
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          )}
-        </View>
-      </View>
-    </Modal>
-  );
+  const handleImageLoad = (userId: number) => {
+    setLoadingAvatars({ ...loadingAvatars, [userId]: false });
+  };
 
   if (isLoading) {
     return (
@@ -311,13 +185,6 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.settingsButton}
-        onPress={() => setIsSettingsVisible(true)}
-      >
-        <Ionicons name="settings" size={24} color={colors.acc.p1} />
-      </TouchableOpacity>
-
       <MapView
         provider={PROVIDER_GOOGLE}
         style={styles.map}
@@ -362,7 +229,6 @@ export default function MapScreen() {
           )
         ))}
       </MapView>
-      {renderSettingsModal()}
     </View>
   );
 }
@@ -414,94 +280,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  settingsButton: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    zIndex: 1,
-    backgroundColor: colors.bg[2],
-    padding: 10,
-    borderRadius: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  loadingContainer: {
+    width: '100%',
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: colors.bg[2],
-    borderRadius: 20,
-    padding: 20,
-    width: '90%',
-    maxHeight: '80%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: colors.text[1],
-  },
-  sharingOptions: {
-    marginBottom: 20,
-  },
-  sharingOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
-    backgroundColor: colors.bg[1],
-  },
-  selectedOption: {
-    borderWidth: 2,
-    borderColor: colors.acc.p1,
-  },
-  optionText: {
-    marginLeft: 10,
-    fontSize: 16,
-    color: colors.text[1],
-  },
-  selectedText: {
-    color: colors.acc.p1,
-    fontWeight: 'bold',
-  },
-  friendsList: {
-    maxHeight: 300,
-  },
-  friendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.bg[1],
-  },
-  friendInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  friendAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 10,
-  },
-  friendName: {
-    fontSize: 16,
-    color: colors.text[1],
   },
 });
