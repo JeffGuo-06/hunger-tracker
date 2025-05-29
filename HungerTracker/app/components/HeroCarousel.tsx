@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   dot: {
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.acc.p1,
+   background: colors.grad[1],
     marginHorizontal: 4,
   },
 });

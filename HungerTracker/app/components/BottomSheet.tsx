@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg[1],
   },
   button: {
-    backgroundColor: colors.acc.p1,
+   background: colors.grad[1],
     padding: spacing.md,
     borderRadius: 8,
     marginBottom: spacing.sm,

@@ -6,6 +6,7 @@ import MapScreen from "../components/MapScreen";
 import { colors, spacing } from "../theme";
 import { Link } from "expo-router";
 import MotiveInvitation from "../components/MotiveInvitation";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function Index() {
   const bottomSheetRef = useRef<BottomSheetModal>(null);
@@ -19,24 +20,28 @@ export default function Index() {
         style={styles.notificationButton}
         onPress={() => setShowInvite((v) => !v)}
       >
-        <Ionicons
-          name="notifications"
-          size={24}
-          color={colors.text[1]}
-        />
+        <Ionicons name="notifications" size={24} color={colors.text[1]} />
       </TouchableOpacity>
       {/* Profile Button */}
       <Link href="/(tabs)/profile" asChild>
         <TouchableOpacity style={styles.profileButton}>
-          <Image source={require("../../assets/images/placeholder/jeff-profile.jpg")} style={styles.profileImage} />
+          <Image
+            source={require("../../assets/images/placeholder/jeff-profile.jpg")}
+            style={styles.profileImage}
+          />
         </TouchableOpacity>
       </Link>
       {/* Motive Create Button */}
-      <Link href="/(stack)/motivecreate" asChild>
-        <TouchableOpacity style={styles.motiveButton}>
-          <Ionicons name="add" size={24} color={colors.text[1]} />
-        </TouchableOpacity>
-      </Link>
+
+      <LinearGradient colors={colors.grad.p1} style={styles.motiveButton}>
+        <Link href="/(stack)/motivecreate" asChild>
+          <TouchableOpacity>
+            {/* style={styles.motiveButton}> */}
+            <Ionicons name="add" size={24} color={colors.text[1]} />
+          </TouchableOpacity>
+        </Link>
+      </LinearGradient>
+
       {/* Motive Invitation Overlay */}
       {showInvite && (
         <TouchableOpacity
@@ -58,7 +63,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg[1],
   },
-  
+
   notificationButton: {
     position: "absolute",
     top: spacing.xl + 30,
@@ -80,7 +85,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: spacing.xl,
     right: spacing.xl,
-    backgroundColor: colors.acc.p1,
     padding: spacing.md,
     borderRadius: 16,
     shadowColor: "#000",
@@ -97,7 +101,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: spacing.xl + 30,
     left: spacing.xl,
-    backgroundColor: colors.acc.p1,
     borderRadius: 32,
     shadowColor: "#000",
     shadowOffset: {

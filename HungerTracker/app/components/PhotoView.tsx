@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Alert, Text} from 'react-native';
 import { Image } from 'expo-image';
 import { SymbolView } from 'expo-symbols';
 import { colors } from '../theme';
@@ -16,6 +16,8 @@ import Animated, {
   FadeOut,
   LinearTransition,
 } from 'react-native-reanimated';
+import GradientButton from './GradientButton';
+import { router } from 'expo-router';
 
 interface PhotoViewProps {
   photo: string;
@@ -43,17 +45,14 @@ export default function PhotoView({ photo, onClose }: PhotoViewProps) {
           size={40}
         />
       </TouchableOpacity>
-      <View style={styles.buttonContainer}>
-        <CustomButton
-          title="Post"
-          handlePress={() => {
-            Alert.alert("Post");
-          }}
-          containerStyles="bg-acc-p1 rounded-xl min-h-[56px]"
-          textStyles="text-white font-psemibold text-lg"
-          isLoading={false}
-        />
-      </View>
+      
+          <GradientButton 
+            style={styles.button}
+            onPress={() => Alert.alert("Post")}
+          >
+            <Text style={styles.buttonText}>Post</Text>
+          </GradientButton> 
+
     </Animated.View>
   );
 }
@@ -79,5 +78,17 @@ const styles = StyleSheet.create({
     bottom: 16,
     paddingHorizontal: 16,
     width: '100%',
+  },
+  button: {
+    position: 'absolute',
+    bottom: 16,
+    paddingHorizontal: 16,
+    width: '90%',
+    alignSelf: 'center',
+  }, 
+  buttonText: {
+    color: colors.text[1],
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

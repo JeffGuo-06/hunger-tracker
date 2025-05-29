@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   inviteButton: {
-    backgroundColor: colors.acc.p1,
+   background: colors.grad[1],
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
     borderRadius: 8,

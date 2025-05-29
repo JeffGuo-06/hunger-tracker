@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   },
   editButton: {
     flex: 1,
-    backgroundColor: colors.acc.p1,
+   background: colors.grad[1],
     padding: 12,
     borderRadius: 8,
     alignItems: "center",
