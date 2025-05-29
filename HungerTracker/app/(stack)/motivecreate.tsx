@@ -5,6 +5,7 @@ import { colors, spacing } from '../theme';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
+import GradientButton from '../components/GradientButton';
 
 export default function MotiveCreate() {
   const [selectedTime, setSelectedTime] = useState(new Date());
@@ -62,7 +63,7 @@ export default function MotiveCreate() {
         >
           <Ionicons name="chevron-back" size={24} color={colors.text[1]} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Create a new Motive</Text>
+        <Text style={styles.headerTitle}>What's the motive?</Text>
         <View style={styles.backButton} />
       </View>
 
@@ -75,7 +76,8 @@ export default function MotiveCreate() {
             <Text style={styles.sectionTitle}>Place</Text>
           </View>
           <View style={styles.placeBox}>
-            <Text style={styles.placeholderText}>Select a location</Text>
+            <Text style={styles.placeholderText}>Where's the function?
+            </Text>
           </View>
         </View>
 
@@ -139,12 +141,12 @@ export default function MotiveCreate() {
 
       {/* Begin Motive Button */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity 
-          style={styles.beginButton}
-          onPress={handleBeginMotive}
-        >
+          <GradientButton 
+            style={styles.beginButton}
+            onPress={handleBeginMotive}
+          >
           <Text style={styles.beginButtonText}>Begin Motive</Text>
-        </TouchableOpacity>
+        </GradientButton>
       </View>
     </SafeAreaView>
   );
@@ -263,9 +265,8 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
   },
   beginButton: {
-    backgroundColor: colors.acc.p1,
-    padding: spacing.md,
-    borderRadius: 8,
+    padding: spacing.sm,
+    borderRadius: 12,
     alignItems: 'center',
   },
   beginButtonText: {

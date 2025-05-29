@@ -5,7 +5,7 @@ export const colors = {
     3: "#707070"
   },
   acc: {
-    p1: "#FF8D4D",      // Color Primary1
+    p1: "#D732A8",      // Color Primary1
     p2: "#A78BFA",      // Color Primary2
     s1: "#D732A8",    // Color Secondary1
   },
@@ -15,7 +15,11 @@ export const colors = {
     3: "#AFAFAF",    // Background 3
     4: "#FFFFFF",    // Background 4
   },
+  grad: {
+    p1: ['#D732A8', '#FF8D4D'] as const,   //   ⬅︎  two-colour array
+  },
   border: "#3A3A3A",  // Border color
+  buttonText: "#0F0F0F",
 };
 
 export const spacing = {

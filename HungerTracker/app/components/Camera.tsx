@@ -5,10 +5,11 @@ import {
   useCameraPermissions,
 } from "expo-camera";
 import React, { useState } from "react";
-import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Button, StyleSheet, Text, TouchableOpacity, View, Image } from "react-native";
 import { SymbolView } from "expo-symbols";
 import PhotoView from "../components/PhotoView";
 import IconButton from "../components/IconButton";
+import { colors } from "../theme";
 
 export default function Camera() {
   const [cameraFacing, setCameraFacing] = useState<CameraType>("back");
@@ -16,10 +17,12 @@ export default function Camera() {
   const [permission, requestPermission] = useCameraPermissions();
   const [photo, setPhoto] = useState<string | null>(null);
   const [isFrozen, setIsFrozen] = useState(false);
+  const [isCameraMounted, setIsCameraMounted] = useState(false);
+  const [toggleCooldown, setToggleCooldown] = useState(false);
   const cameraRef = React.useRef<CameraView>(null);
   
   async function handleTakePhoto() {
-    if (!cameraRef.current) return;
+    if (!cameraRef.current || !isCameraMounted || isFrozen) return;
     
     setIsFrozen(true);
     try {
@@ -52,6 +55,10 @@ export default function Camera() {
   }
 
   function toggleCameraFacing() {
+    if (isFrozen || toggleCooldown) return;
+    setToggleCooldown(true);
+    setTimeout(() => setToggleCooldown(false), 500);
+    setIsCameraMounted(false);
     setCameraFacing((current) => (current === "back" ? "front" : "back"));
   }
 
@@ -66,15 +73,33 @@ export default function Camera() {
   return (
     <View style={styles.container}>
       <CameraView
+        key={cameraFacing}
         ref={cameraRef}
         facing={cameraFacing}
         flash={cameraFlash}
         style={styles.camera}
         mirror={cameraFacing === "front"}
         active={!isFrozen}
+        onCameraReady={() => setIsCameraMounted(true)}
       />
-      <View style={styles.bottombar}>
-        <TouchableOpacity style={styles.button} onPress={toggleCameraFlash}>
+      {!isCameraMounted && (
+        <View style={styles.loadingOverlay}>
+          <Image
+            source={require("../../assets/images/loading.jpg")}
+            style={styles.loadingImage}
+            resizeMode="cover"
+          />
+        </View>
+      )}
+      <View
+        style={styles.bottombar}
+        pointerEvents={!isCameraMounted || isFrozen || toggleCooldown ? "none" : "auto"}
+      >
+        <TouchableOpacity
+          style={styles.button}
+          onPress={toggleCameraFlash}
+          disabled={!isCameraMounted || isFrozen || toggleCooldown}
+        >
           <SymbolView
             name={cameraFlash === "on" ? "bolt.fill" : "bolt.slash.fill"}
             type="hierarchical"
@@ -82,17 +107,22 @@ export default function Camera() {
             size={40}
           />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={handleTakePhoto}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleTakePhoto}
+          disabled={!isCameraMounted || isFrozen || toggleCooldown}
+        >
           <SymbolView
             name="circle"
             type="hierarchical"
-            tintColor="white"
+            tintColor={(!isCameraMounted || isFrozen || toggleCooldown) ? "gray" : "white"}
             size={90}
           />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
           onPress={toggleCameraFacing}
+          disabled={!isCameraMounted || isFrozen || toggleCooldown}
         >
           <SymbolView
             name="camera.rotate.fill"
@@ -126,6 +156,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 18,
     margin: 20,
+    color: colors.text[1],
   },
   bottombar: {
     position: "absolute",
@@ -137,5 +168,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingBottom: 10,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "hsla(0, 0%, 0%, 0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingImage: {
+    width: "100%",
+    height: "100%",
   },
 });

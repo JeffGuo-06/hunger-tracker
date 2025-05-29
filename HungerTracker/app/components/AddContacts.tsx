@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
         marginTop: 2,
     },
     actionButton: {
-        backgroundColor: colors.acc.p1,
+        backgroundColor: colors.text[3],
         paddingHorizontal: 16,
         paddingVertical: 8,
         borderRadius: 20,
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
     permissionButton: {
-        backgroundColor: colors.acc.p1,
+       background: colors.grad[1],
         paddingHorizontal: 24,
         paddingVertical: 12,
         borderRadius: 25,
