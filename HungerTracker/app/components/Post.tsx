@@ -30,19 +30,10 @@ export default function Post({ post }: { post: { id: string, user: { name: strin
     const lastScale = useSharedValue(1);
     const lastOffsetX = useSharedValue(0);
     const lastOffsetY = useSharedValue(0);
-    const isZoomed = useSharedValue(false);
 
     // Sensitivity factors
     const ZOOM_SENSITIVITY = 0.7;
     const PAN_SENSITIVITY = 0.6;
-
-    // Track zoom state
-    useAnimatedReaction(
-        () => scale.value,
-        (currentScale) => {
-            isZoomed.value = currentScale > 1;
-        }
-    );
 
     const pinchGesture = Gesture.Pinch()
         .onStart((e) => {
@@ -116,7 +107,7 @@ export default function Post({ post }: { post: { id: string, user: { name: strin
         })
         .minPointers(2)
         .maxPointers(2)
-        .simultaneousWithExternalGesture(pinchGesture);
+        .enabled(scale.value > 1);
 
     const composed = Gesture.Simultaneous(pinchGesture, panGesture);
 
@@ -163,7 +154,7 @@ export default function Post({ post }: { post: { id: string, user: { name: strin
 const styles = StyleSheet.create({
     container: {
         marginBottom: 20,
-        backgroundColor: colors.bg[2],
+        backgroundColor: colors.bg[1],
     },
     header: {
         flexDirection: 'row',
