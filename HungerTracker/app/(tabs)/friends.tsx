@@ -12,7 +12,7 @@ export default function Friends() {
     
     <SafeAreaView style={styles.container} edges={["top"]}>
       
-      <Text style={styles.text}>Friends</Text>
+      <Text style={styles.title}>Friends</Text>
       <View style={styles.searchBar}>
         <Ionicons name="search" size={20} color={colors.text[2]} style={styles.searchIcon} />
         <TextInput
