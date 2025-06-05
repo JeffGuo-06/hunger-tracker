@@ -2,6 +2,9 @@ import { View, Text, Image, StyleSheet, Dimensions, TouchableOpacity } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
+import { useRef } from 'react';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import CommentsBottomSheet from './CommentsBottomSheet';
 import Animated, { 
     useAnimatedStyle, 
     useSharedValue, 
@@ -21,6 +24,22 @@ configureReanimatedLogger({
 });
 
 export default function Post({ post }: { post: { id: string, user: { name: string, profileImage: any }, subtitle: string, imageUrl: any, comments: number } }) {
+    const bottomSheetRef = useRef<BottomSheetModal>(null);
+
+    const exampleComments = [
+        {
+            id: '1',
+            user: { name: 'Jeff Guo', profileImage: require('../assets/images/placeholder/jeff-profile.jpg') },
+            time: '2h',
+            text: 'Looks delicious!'
+        },
+        {
+            id: '2',
+            user: { name: 'Jane Smith', profileImage: require('../assets/images/placeholder/jeff-profile.jpg') },
+            time: '1h',
+            text: 'Can\'t wait to try this.'
+        }
+    ];
     const scale = useSharedValue(1);
     const offsetX = useSharedValue(0);
     const offsetY = useSharedValue(0);
@@ -152,12 +171,15 @@ export default function Post({ post }: { post: { id: string, user: { name: strin
                     </Animated.View>
                 </GestureDetector>
                 <Animated.View style={[styles.commentOverlay, commentButtonStyle]}>
-                    <View style={styles.infoContainer}>
-                        <Ionicons name="chatbubble" size={24} color={colors.text[1]} />
-                        <Text style={styles.comments}>{post.comments}</Text>
-                    </View>
+                    <TouchableOpacity onPress={() => bottomSheetRef.current?.present()}>
+                        <View style={styles.infoContainer}>
+                            <Ionicons name="chatbubble" size={24} color={colors.text[1]} />
+                            <Text style={styles.comments}>{post.comments}</Text>
+                        </View>
+                    </TouchableOpacity>
                 </Animated.View>
             </View>
+            <CommentsBottomSheet bottomSheetRef={bottomSheetRef} comments={exampleComments} />
         </View>
     );
 }
