@@ -123,6 +123,13 @@ export default function Post({ post }: { post: { id: string, user: { name: strin
         opacity: scale.value > 1 ? 1 : 0,
     }));
 
+    const commentButtonStyle = useAnimatedStyle(() => ({
+        opacity: scale.value > 1 ? 0 : 1,
+        transform: [
+            { scale: scale.value > 1 ? 0.8 : 1 }
+        ]
+    }));
+
     return (
         <View style={styles.container}>
             <Link href="/(stack)/viewprofile" asChild>
@@ -134,18 +141,22 @@ export default function Post({ post }: { post: { id: string, user: { name: strin
                     </View>
                 </TouchableOpacity>
             </Link>
-            <GestureDetector gesture={composed}>
-                <Animated.View style={styles.imageContainer}>
-                    <Animated.Image 
-                        source={post.imageUrl} 
-                        style={[styles.image, animatedStyle]}
-                        resizeMode="cover"
-                    />
+            <View style={styles.imageContainer}>
+                <GestureDetector gesture={composed}>
+                    <Animated.View style={styles.imageContainer}>
+                        <Animated.Image 
+                            source={post.imageUrl} 
+                            style={[styles.image, animatedStyle]}
+                            resizeMode="cover"
+                        />
+                    </Animated.View>
+                </GestureDetector>
+                <Animated.View style={[styles.commentOverlay, commentButtonStyle]}>
+                    <View style={styles.infoContainer}>
+                        <Ionicons name="chatbubble" size={24} color={colors.text[1]} />
+                        <Text style={styles.comments}>{post.comments}</Text>
+                    </View>
                 </Animated.View>
-            </GestureDetector>
-            <View style={styles.infoContainer}>
-                <Ionicons name="chatbubble-outline" size={24} color={colors.acc.p1} />
-                <Text style={styles.comments}>{post.comments}</Text>
             </View>
         </View>
     );
@@ -182,19 +193,29 @@ const styles = StyleSheet.create({
         width: SCREEN_WIDTH,
         height: SCREEN_WIDTH,
         overflow: 'hidden',
+        position: 'relative',
     },
     image: {
         width: '100%',
         height: '100%',
         borderRadius: 12,
     },
+    commentOverlay: {
+        position: 'absolute',
+        bottom: 10,
+        right: 10,
+        shadowColor: 'rgb(0, 0, 0)',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 1,
+        shadowRadius: 2,
+    },
     infoContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        padding: 10,
     },
     comments: {
         marginLeft: 5,
-        color: colors.text[2],
+        color: colors.text[1],
+        fontWeight: '500',
     },
 });
