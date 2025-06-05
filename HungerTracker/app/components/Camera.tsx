@@ -4,11 +4,11 @@ import {
   FlashMode,
   useCameraPermissions,
 } from "expo-camera";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button, StyleSheet, Text, TouchableOpacity, View, Image } from "react-native";
 import { SymbolView } from "expo-symbols";
-import PhotoView from "../components/PhotoView";
 import IconButton from "../components/IconButton";
+import { useRouter } from "expo-router";
 import { colors } from "../theme";
 
 export default function Camera() {
@@ -20,6 +20,17 @@ export default function Camera() {
   const [isCameraMounted, setIsCameraMounted] = useState(false);
   const [toggleCooldown, setToggleCooldown] = useState(false);
   const cameraRef = React.useRef<CameraView>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (photo) {
+      router.push({
+        pathname: '/(stack)/createpost',
+        params: { imageUri: photo },
+      });
+      setPhoto(null);
+    }
+  }, [photo]);
   
   async function handleTakePhoto() {
     if (!cameraRef.current || !isCameraMounted || isFrozen) return;
@@ -66,9 +77,6 @@ export default function Camera() {
     setCameraFlash((current) => (current === "off" ? "on" : "off"));
   }
 
-  if (photo) {
-    return <PhotoView photo={photo} onClose={() => setPhoto(null)} />;
-  }
 
   return (
     <View style={styles.container}>
