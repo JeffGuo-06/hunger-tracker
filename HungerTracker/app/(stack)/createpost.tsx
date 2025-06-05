@@ -1,13 +1,20 @@
-import React from 'react';
-import { StyleSheet, Text, Alert } from 'react-native';
-import { Image } from 'expo-image';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import IconButton from '../components/IconButton';
-import GradientButton from '../components/GradientButton';
-import { colors, spacing } from '../theme';
-import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
-import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
+import React from "react";
+import { StyleSheet, Text, Alert } from "react-native";
+import { Image } from "expo-image";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import IconButton from "../components/IconButton";
+import GradientButton from "../components/GradientButton";
+import { colors, spacing } from "../theme";
+import {
+  configureReanimatedLogger,
+  ReanimatedLogLevel,
+} from "react-native-reanimated";
+import Animated, {
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+} from "react-native-reanimated";
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
@@ -39,7 +46,10 @@ export default function CreatePost() {
             contentFit="cover"
           />
         )}
-        <GradientButton style={styles.postButton} onPress={() => Alert.alert('Post')}>
+        <GradientButton
+          style={styles.postButton}
+          onPress={() => Alert.alert("Post")}
+        >
           <Text style={styles.postButtonText}>Post</Text>
         </GradientButton>
       </SafeAreaView>
@@ -56,27 +66,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   backButton: {
-    position: 'absolute',
-    top: spacing.xl,
+    position: "absolute",
+    top: spacing.xl + 25,
     left: spacing.xl,
     zIndex: 10,
   },
   image: {
     flex: 1,
-    width: '90%',
-    alignSelf: 'center',
+    width: "90%",
+    alignSelf: "center",
     borderRadius: 12,
     marginTop: spacing.xl * 2,
     marginBottom: spacing.xl * 3,
   },
   postButton: {
-    width: '90%',
-    alignSelf: 'center',
+    width: "90%",
+    alignSelf: "center",
     marginBottom: spacing.xl,
   },
   postButtonText: {
     color: colors.text[1],
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
