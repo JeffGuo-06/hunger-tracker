@@ -1,10 +1,11 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, Alert, Text } from 'react-native';
+import { StyleSheet, Text, Alert } from 'react-native';
 import { Image } from 'expo-image';
-import { SymbolView } from 'expo-symbols';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import IconButton from '../components/IconButton';
 import GradientButton from '../components/GradientButton';
-import { colors } from '../theme';
+import { colors, spacing } from '../theme';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 
@@ -22,52 +23,60 @@ export default function CreatePost() {
       layout={LinearTransition}
       entering={FadeIn}
       exiting={FadeOut}
-      style={styles.container}
+      style={styles.wrapper}
     >
-      {imageUri && (
-        <Image source={{ uri: imageUri }} style={styles.image} contentFit="cover" />
-      )}
-      <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
-        <SymbolView
-          name="xmark.circle.fill"
-          type="hierarchical"
-          tintColor="white"
-          size={40}
+      <SafeAreaView style={styles.container}>
+        <IconButton
+          iosName="chevron.backward"
+          androidName="arrow-back"
+          onPress={() => router.back()}
+          containerStyle={styles.backButton}
         />
-      </TouchableOpacity>
-      <GradientButton style={styles.button} onPress={() => Alert.alert('Post')}>
-        <Text style={styles.buttonText}>Post</Text>
-      </GradientButton>
+        {imageUri && (
+          <Image
+            source={{ uri: imageUri }}
+            style={styles.image}
+            contentFit="cover"
+          />
+        )}
+        <GradientButton style={styles.postButton} onPress={() => Alert.alert('Post')}>
+          <Text style={styles.postButtonText}>Post</Text>
+        </GradientButton>
+      </SafeAreaView>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
     flex: 1,
     backgroundColor: colors.bg[1],
   },
+  container: {
+    flex: 1,
+  },
+  backButton: {
+    position: 'absolute',
+    top: spacing.xl,
+    left: spacing.xl,
+    zIndex: 10,
+  },
   image: {
     flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  closeButton: {
-    position: 'absolute',
-    top: 40,
-    right: 20,
-    padding: 10,
-  },
-  button: {
-    position: 'absolute',
-    bottom: 16,
-    paddingHorizontal: 16,
     width: '90%',
     alignSelf: 'center',
+    borderRadius: 12,
+    marginTop: spacing.xl * 2,
+    marginBottom: spacing.xl * 3,
   },
-  buttonText: {
+  postButton: {
+    width: '90%',
+    alignSelf: 'center',
+    marginBottom: spacing.xl,
+  },
+  postButtonText: {
     color: colors.text[1],
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '600',
   },
 });
