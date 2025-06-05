@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: spacing.xl + 30,
     right: spacing.xl,
-    backgroundColor: colors.bg[2],
+    backgroundColor: colors.bg[1],
     padding: spacing.md,
     borderRadius: 16,
     shadowColor: "#000",
