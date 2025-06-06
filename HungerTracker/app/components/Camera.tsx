@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  Camera,
+  Camera as VisionCamera,
   useCameraPermission,
   useCameraDevice,
   CameraPosition,
@@ -20,7 +20,7 @@ export default function Camera() {
   const [isFrozen, setIsFrozen] = useState(false);
   const [isCameraMounted, setIsCameraMounted] = useState(false);
   const [toggleCooldown, setToggleCooldown] = useState(false);
-  const cameraRef = useRef<Camera>(null);
+  const cameraRef = useRef<VisionCamera>(null);
   const router = useRouter();
 
   const hasUltraWide = device ? device.minZoom < device.neutralZoom : false;
@@ -100,7 +100,7 @@ export default function Camera() {
   return (
     <View style={styles.container}>
       {device && (
-        <Camera
+        <VisionCamera
           key={cameraFacing}
           ref={cameraRef}
           device={device}
