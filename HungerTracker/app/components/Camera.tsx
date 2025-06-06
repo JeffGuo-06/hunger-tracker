@@ -6,6 +6,8 @@ import {
   CameraPosition,
 } from "react-native-vision-camera";
 import { Button, StyleSheet, Text, TouchableOpacity, View, Image } from "react-native";
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { runOnJS, useSharedValue } from 'react-native-reanimated';
 import { SymbolView } from "expo-symbols";
 import { useRouter } from "expo-router";
 import { colors } from "../theme";
@@ -23,13 +25,20 @@ export default function Camera() {
   const cameraRef = useRef<VisionCamera>(null);
   const router = useRouter();
 
-  const hasUltraWide = device ? device.minZoom < device.neutralZoom : false;
+  const minZoom = device ? Math.max(device.minZoom, 0.5) : 0.5;
+  const maxZoom = device ? Math.min(device.maxZoom, 5) : 5;
 
-  useEffect(() => {
-    if (device?.neutralZoom != null) {
-      setZoom(device.neutralZoom);
-    }
-  }, [device]);
+  const baseZoom = useSharedValue(1);
+  const pinchGesture = Gesture.Pinch()
+    .onStart(() => {
+      baseZoom.value = zoom;
+    })
+    .onUpdate((e) => {
+      const newZoom = Math.max(minZoom, Math.min(baseZoom.value * e.scale, maxZoom));
+      runOnJS(setZoom)(newZoom);
+    });
+
+  const hasUltraWide = device ? device.minZoom <= 0.5 : false;
 
   useEffect(() => {
     if (photo) {
@@ -81,37 +90,36 @@ export default function Camera() {
   }
 
   function zoomIn() {
-    if (!device) return;
-    setZoom((z) => Math.min(z + 0.1, device.maxZoom));
+    setZoom((z) => Math.min(z + 0.1, maxZoom));
   }
 
   function zoomOut() {
-    if (!device) return;
-    setZoom((z) => Math.max(z - 0.1, device.minZoom));
+    setZoom((z) => Math.max(z - 0.1, minZoom));
   }
 
   function toggleUltraWide() {
     if (!device || !hasUltraWide) return;
-    const ultra = Math.max(device.minZoom, device.neutralZoom / 2);
-    setZoom((z) => (Math.abs(z - ultra) < 0.01 ? device.neutralZoom : ultra));
+    const ultra = minZoom;
+    setZoom((z) => (Math.abs(z - ultra) < 0.01 ? 1 : ultra));
   }
 
 
   return (
     <View style={styles.container}>
       {device && (
-        <VisionCamera
-          key={cameraFacing}
-          ref={cameraRef}
-          device={device}
-          isActive={!isFrozen}
-          photo
-          enableZoomGesture={false}
-          zoom={zoom}
-          torch={cameraFlash}
-          style={styles.camera}
-          onInitialized={() => setIsCameraMounted(true)}
-        />
+        <GestureDetector gesture={pinchGesture}>
+          <VisionCamera
+            key={cameraFacing}
+            ref={cameraRef}
+            device={device}
+            isActive={!isFrozen}
+            photo
+            zoom={zoom}
+            torch={cameraFlash}
+            style={styles.camera}
+            onInitialized={() => setIsCameraMounted(true)}
+          />
+        </GestureDetector>
       )}
       {!isCameraMounted && (
         <View style={styles.loadingOverlay}>
