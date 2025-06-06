@@ -12,7 +12,21 @@ import { SymbolView } from "expo-symbols";
 import { useRouter } from "expo-router";
 import { colors } from "../theme";
 
-export default function CameraView() {
+  const device = useCameraDevice(
+    cameraFacing,
+    cameraFacing === 'back'
+      ? { physicalDevices: ['ultra-wide-angle-camera', 'wide-angle-camera'] }
+      : undefined,
+  );
+  // clamp zoom whenever the camera device changes
+  useEffect(() => {
+    if (!device) return;
+    setZoom((z) => {
+      const clamped = Math.min(Math.max(z, minZoom), maxZoom);
+      return clamped;
+    });
+  }, [device, minZoom, maxZoom]);
+
   const [cameraFacing, setCameraFacing] = useState<CameraPosition>("back");
   const [cameraFlash, setCameraFlash] = useState<'on' | 'off'>("off");
   const { hasPermission, requestPermission } = useCameraPermission();
