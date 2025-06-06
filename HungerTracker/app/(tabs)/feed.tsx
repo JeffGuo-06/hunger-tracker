@@ -9,11 +9,8 @@ import { Ionicons } from "@expo/vector-icons";
 interface PostData {
   id: string;
   user: {
-    id: number;
-    username: string;
-    first_name: string;
-    last_name: string;
-    profile_image: string | null;
+    name: string;
+    profileImage: string;
   };
   image: string;
   caption: string;
@@ -22,11 +19,8 @@ interface PostData {
   comments: {
     id: string;
     user: {
-      id: number;
-      username: string;
-      first_name: string;
-      last_name: string;
-      profile_image: string | null;
+      name: string;
+      profileImage: string;
     };
     content: string;
     created_at: string;
@@ -50,14 +44,12 @@ export default function Feed() {
       const transformedPosts = response.map((post: any) => ({
         ...post,
         user: {
-          ...post.user,
           name: `${post.user.first_name} ${post.user.last_name}`,
           profileImage: post.user.profile_image || undefined,
         },
         comments: post.comments?.map((comment: any) => ({
           ...comment,
           user: {
-            ...comment.user,
             name: `${comment.user.first_name} ${comment.user.last_name}`,
             profileImage: comment.user.profile_image || undefined,
           },

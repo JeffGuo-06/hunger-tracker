@@ -28,11 +28,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.40.242']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
+if not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ['*']  # Fallback for development only
 
-
+cors_env = os.getenv("CORS_ALLOWED_ORIGINS")
+if cors_env and cors_env.strip():
+    CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_env.split(",") if origin.strip()]
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://muckd-alb-756249639.us-east-2.elb.amazonaws.com"
+    ]
+print("CORS_ALLOWED_ORIGINS:", CORS_ALLOWED_ORIGINS)
 # Application definition
 
 INSTALLED_APPS = [
@@ -58,6 +69,7 @@ INSTALLED_APPS = [
     
     # Local apps
     'muckd',
+    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -144,7 +156,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = "/app/staticfiles"
 
 # Media files
 MEDIA_URL = '/media/'
@@ -172,15 +184,6 @@ SIMPLE_JWT = {
 }
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://localhost:19006",  # Expo default port
-    "exp://localhost:19000",   # Expo development client
-    "http://192.168.40.242:8000",  # Your local IP
-]
-
-# Add these new CORS settings
-CORS_ALLOW_ALL_ORIGINS = True  # Only for development
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -207,14 +210,19 @@ CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
+            "hosts": [os.getenv('REDIS_URL', 'redis://localhost:6379/0')],
         },
     },
 }
 
 # Celery settings
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
 
 # AWS S3 Configuration
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
@@ -250,8 +258,16 @@ class MediaStorage(S3Boto3Storage):
     file_overwrite = False
 
 # Configure storage backends
-STATICFILES_STORAGE = StaticStorage
-DEFAULT_FILE_STORAGE = MediaStorage
+if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
+    STATICFILES_STORAGE = StaticStorage
+    DEFAULT_FILE_STORAGE = MediaStorage
+    STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+else:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    STATIC_URL = '/static/'
+    MEDIA_URL = '/media/'
 
 # Add these settings for S3
 AWS_S3_OBJECT_PARAMETERS = {
@@ -260,13 +276,10 @@ AWS_S3_OBJECT_PARAMETERS = {
 
 AWS_QUERYSTRING_AUTH = False
 
-# Update URLs to use S3
-STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
-MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
-
-# Remove any local storage settings
-STATIC_ROOT = None
-MEDIA_ROOT = None
+# Remove any local storage settings if using S3
+if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME:
+    STATIC_ROOT = None
+    MEDIA_ROOT = None
 
 # django-allauth settings
 AUTHENTICATION_BACKENDS = (
@@ -316,11 +329,11 @@ LOGGING = {
     'loggers': {
         '': {  # Root logger
             'handlers': ['console', 'file'],
-            'level': 'DEBUG',
+            'level': 'INFO',
         },
         'muckd': {  # App logger
             'handlers': ['console', 'file'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': False,
         },
     },
@@ -328,7 +341,35 @@ LOGGING = {
 
 # Cache settings
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
     }
 }
+
+# Security settings for production
+if not DEBUG:
+    # Temporarily disable SSL redirect for ALB health checks
+    SECURE_SSL_REDIRECT = False  # Disable automatic HTTP to HTTPS redirect
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
+    USE_X_FORWARDED_PORT = True
+
+# # Add a debug log line at the top of the settings file to confirm when it is loaded
+# import logging
+# logging.basicConfig(level=logging.DEBUG)
+# logging.debug('*** muckd/settings.py loaded at runtime v5***')
+
+# APPEND_SLASH = False
+

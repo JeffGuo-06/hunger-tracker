@@ -30,7 +30,4 @@ class MessageAdmin(admin.ModelAdmin):
 class NotificationAdmin(admin.ModelAdmin):
     list_display = ('user', 'notification_type', 'is_read', 'created_at')
     search_fields = ('user__username', 'content')
-    list_filter = ('notification_type', 'is_read', 'created_at')
-
-User = get_user_model()
-admin.site.register(User) 
+    list_filter = ('notification_type', 'is_read', 'created_at') 

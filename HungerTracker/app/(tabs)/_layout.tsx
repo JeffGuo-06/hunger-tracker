@@ -11,7 +11,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color }) => (
+          tabBarIcon: ({ color }: { color: string }) => (
             <FontAwesome size={28} name="home" color={color} />
           ),
         }}
@@ -20,7 +20,7 @@ export default function TabLayout() {
         name="feed"
         options={{
           title: "Feed",
-          tabBarIcon: ({ color }) => (
+          tabBarIcon: ({ color }: { color: string }) => (
             <FontAwesome size={24} name="search" color={color} />
           ),
         }}
@@ -29,7 +29,7 @@ export default function TabLayout() {
         name="eat"
         options={{
           title: "Muck",
-          tabBarIcon: ({ color }) => (
+          tabBarIcon: ({ color }: { color: string }) => (
             <FontAwesome5 size={28} name="hamburger" color={color} />
           ),
         }}
@@ -38,7 +38,7 @@ export default function TabLayout() {
         name="friends"
         options={{
           title: "Friends",
-          tabBarIcon: ({ color }) => (
+          tabBarIcon: ({ color }: { color: string }) => (
             <FontAwesome5 size={20} name="user-friends" color={color} />
           ),
         }}
@@ -47,7 +47,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color }) => (
+          tabBarIcon: ({ color }: { color: string }) => (
             <FontAwesome size={20} name="user-circle" color={color} />
           ),
         }}

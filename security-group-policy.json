@@ -1,0 +1,21 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:AuthorizeSecurityGroupEgress",
+                "ec2:RevokeSecurityGroupIngress",
+                "ec2:RevokeSecurityGroupEgress",
+                "ec2:DescribeSecurityGroups",
+                "ec2:CreateSecurityGroup",
+                "ec2:DeleteSecurityGroup"
+            ],
+            "Resource": [
+                "arn:aws:ec2:us-east-2:656362079087:security-group/sg-04580f8dd2fe1b429",
+                "arn:aws:ec2:us-east-2:656362079087:security-group/sg-01af35f8816d06005"
+            ]
+        }
+    ]
+} 

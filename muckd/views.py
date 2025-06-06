@@ -24,6 +24,7 @@ import logging
 from django.core.files.storage import default_storage
 from storages.backends.s3boto3 import S3Boto3Storage
 import json
+from .tasks import update_user_location, fetch_friends_locations
 
 logger = logging.getLogger(__name__)
 
@@ -154,38 +155,22 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def friends_locations(self, request):
-        # Get all accepted friendships
-        friendships = Friendship.objects.filter(
-            (models.Q(sender=request.user) | models.Q(receiver=request.user)),
-            status='accepted'
-        )
+        user = request.user
         
-        # Get friends' profiles with their locations
-        friends_data = []
-        for friendship in friendships:
-            friend = friendship.receiver if friendship.sender == request.user else friendship.sender
-            
-            # Skip if friend has set their location to invisible
-            if friend.location_sharing_mode == 'invisible':
-                continue
-                
-            # Check if friend has allowed this user to see their location
-            should_show_location = False
-            if friend.location_sharing_mode == 'all_friends':
-                should_show_location = True
-            elif friend.location_sharing_mode == 'select_friends':
-                should_show_location = friend.selected_friends.filter(id=request.user.id).exists()
-            
-            if should_show_location and friend.location is not None:
-                friends_data.append({
-                    'id': friend.id,
-                    'name': f"{friend.first_name} {friend.last_name}",
-                    'location': friend.location,
-                    'last_location_update': friend.last_location_update,
-                    'profile_image': friend.profile.profile_image.url if friend.profile.profile_image else None
-                })
+        # Try to get from cache first
+        cache_key = f'friends_locations_{user.id}'
+        cached_locations = cache.get(cache_key)
         
-        return Response(friends_data)
+        if cached_locations is not None:
+            return Response(cached_locations)
+        
+        # If not in cache, fetch synchronously first time
+        try:
+            locations = fetch_friends_locations(user.id)
+            return Response(locations)
+        except Exception as e:
+            logger.error(f"Error fetching friends locations: {str(e)}")
+            return Response([], status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def retrieve(self, request, pk=None):
         # pk is user_id
@@ -359,7 +344,7 @@ class FriendshipViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all().order_by('-created_at').distinct()
+    queryset = Post.objects.only('id', 'user', 'image', 'created_at').order_by('-created_at').distinct()
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticated]
 

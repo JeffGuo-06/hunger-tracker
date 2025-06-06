@@ -3,13 +3,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 
 // Use your computer's local IP address instead of localhost
-const API_URL = 'http://192.168.40.242:8000';  // Your computer's IP address
+const API_URL = 'http://muckd-alb-756249639.us-east-2.elb.amazonaws.com';
 
 const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 second timeout
 });
 
 // Add request interceptor for logging
@@ -45,6 +46,17 @@ api.interceptors.response.use(
       message: error.message,
     });
 
+    // Handle network errors
+    if (!error.response) {
+      console.error('Network Error:', error.message);
+      if (error.message.includes('Network Error')) {
+        throw new Error('Unable to connect to the server. Please check your internet connection and try again.');
+      } else if (error.message.includes('timeout')) {
+        throw new Error('Request timed out. Please try again.');
+      }
+      throw new Error('Network error. Please check your internet connection.');
+    }
+
     // Handle unauthorized errors (401)
     if (error.response?.status === 401) {
       // Clear auth tokens
@@ -53,9 +65,16 @@ api.interceptors.response.use(
       
       // Redirect to login page
       router.replace('/(auth)/login');
+      throw new Error('Session expired. Please login again.');
     }
 
-    return Promise.reject(error);
+    // Handle server errors (500)
+    if (error.response?.status >= 500) {
+      throw new Error('Server error. Please try again later.');
+    }
+
+    // Handle other errors
+    throw new Error(error.response?.data?.message || 'An error occurred. Please try again.');
   }
 );
 

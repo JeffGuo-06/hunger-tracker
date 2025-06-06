@@ -53,3 +53,5 @@ web-build/
 *.swo 
 
 debug.log
+
+task-definition.json

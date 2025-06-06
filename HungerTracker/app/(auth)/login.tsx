@@ -79,10 +79,21 @@ export default function Login() {
       );
     } catch (error: any) {
       console.error('Verification request error:', error.response?.data || error.message);
-      Alert.alert(
-        'Error',
-        error.response?.data?.error || 'Failed to send verification code. Please try again.'
-      );
+      let errorMessage = 'Failed to send verification code. Please try again.';
+      
+      if (error.message.includes('Network error') || error.message.includes('Unable to connect')) {
+        errorMessage = 'Unable to connect to the server. Please check your internet connection and try again.';
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'Request timed out. Please try again.';
+      } else if (error.message.includes('SSL') || error.message.includes('Secure connection')) {
+        errorMessage = 'Secure connection failed. Please try again later.';
+      } else if (error.response?.status === 429) {
+        errorMessage = 'Too many attempts. Please wait a few minutes before trying again.';
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      }
+      
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -111,10 +122,21 @@ export default function Login() {
       router.replace("/(tabs)");
     } catch (error: any) {
       console.error('Verification error:', error.response?.data || error.message);
-      Alert.alert(
-        'Error',
-        error.response?.data?.error || 'Invalid verification code. Please try again.'
-      );
+      let errorMessage = 'Invalid verification code. Please try again.';
+      
+      if (error.message.includes('Network error') || error.message.includes('Unable to connect')) {
+        errorMessage = 'Unable to connect to the server. Please check your internet connection and try again.';
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'Request timed out. Please try again.';
+      } else if (error.message.includes('SSL') || error.message.includes('Secure connection')) {
+        errorMessage = 'Secure connection failed. Please try again later.';
+      } else if (error.message.includes('Session expired')) {
+        errorMessage = 'Session expired. Please try again.';
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      }
+      
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -147,10 +169,19 @@ export default function Login() {
       router.replace("/(tabs)");
     } catch (error: any) {
       console.error('Login error:', error.response?.data || error.message);
-      Alert.alert(
-        'Error',
-        error.response?.data?.detail || 'Invalid email or password. Please try again.'
-      );
+      let errorMessage = 'Invalid email or password. Please try again.';
+      
+      if (error.message.includes('Network error') || error.message.includes('Unable to connect')) {
+        errorMessage = 'Unable to connect to the server. Please check your internet connection and try again.';
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'Request timed out. Please try again.';
+      } else if (error.message.includes('SSL') || error.message.includes('Secure connection')) {
+        errorMessage = 'Secure connection failed. Please try again later.';
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      }
+      
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
     }

@@ -6,13 +6,14 @@
     "paths": {
       "@/*": ["./*"]
     },
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "allowJs": true,
     "jsx": "react-native",
     "isolatedModules": true,
     "noEmit": true,
     "resolveJsonModule": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "module": "Node16"
   },
   "include": [
     "**/*.ts",
