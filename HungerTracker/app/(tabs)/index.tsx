@@ -63,7 +63,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg[1],
   },
-
   notificationButton: {
     position: "absolute",
     top: spacing.xl + 30,

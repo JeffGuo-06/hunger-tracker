@@ -12,7 +12,7 @@ import { SymbolView } from "expo-symbols";
 import { useRouter } from "expo-router";
 import { colors } from "../theme";
 
-export default function Camera() {
+export default function CameraView() {
   const [cameraFacing, setCameraFacing] = useState<CameraPosition>("back");
   const [cameraFlash, setCameraFlash] = useState<'on' | 'off'>("off");
   const { hasPermission, requestPermission } = useCameraPermission();
