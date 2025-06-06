@@ -5,48 +5,80 @@ import {
   useCameraDevice,
   CameraPosition,
 } from "react-native-vision-camera";
-import { Button, StyleSheet, Text, TouchableOpacity, View, Image } from "react-native";
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { runOnJS, useSharedValue } from 'react-native-reanimated';
+import {
+  Button,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Image,
+} from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { runOnJS, useSharedValue } from "react-native-reanimated";
 import { SymbolView } from "expo-symbols";
 import { useRouter } from "expo-router";
 import { colors } from "../theme";
 
-  const cameraDevice = useCameraDevice(
+  const [cameraFlash, setCameraFlash] = useState<"on" | "off">("off");
     cameraFacing,
-    cameraFacing === 'back'
-      ? { physicalDevices: ['ultra-wide-angle-camera', 'wide-angle-camera'] }
+    cameraFacing === "back"
+      ? { physicalDevices: ["ultra-wide-angle-camera", "wide-angle-camera"] }
       : undefined,
   );
-  const minZoom = cameraDevice ? (cameraDevice.minZoom < 1 ? cameraDevice.minZoom : 1) : 1;
+  const minZoom = cameraDevice
+    ? cameraDevice.minZoom < 1
+      ? cameraDevice.minZoom
+      : 1
+    : 1;
   const maxZoom = cameraDevice ? Math.min(cameraDevice.maxZoom, 5) : 5;
-  const hasUltraWide = cameraDevice ? cameraDevice.minZoom < 1 : false;
+      const newZoom = Math.max(
+        minZoom,
+        Math.min(baseZoom.value * e.scale, maxZoom),
+      );
     if (!cameraDevice) return;
       const clamped = Math.min(Math.max(z, minZoom), maxZoom);
       return clamped;
     });
   }, [cameraDevice, minZoom, maxZoom]);
 
-  const [cameraFacing, setCameraFacing] = useState<CameraPosition>("back");
-  const [cameraFlash, setCameraFlash] = useState<'on' | 'off'>("off");
-  const { hasPermission, requestPermission } = useCameraPermission();
-  const device = useCameraDevice(cameraFacing, cameraFacing === 'back' ? { physicalDevices: ['ultra-wide-angle-camera', 'wide-angle-camera'] } : undefined);
-  const [zoom, setZoom] = useState(1);
-  const [photo, setPhoto] = useState<string | null>(null);
-  const [isFrozen, setIsFrozen] = useState(false);
-  const [isCameraMounted, setIsCameraMounted] = useState(false);
-  const [toggleCooldown, setToggleCooldown] = useState(false);
-  const cameraRef = useRef<VisionCamera>(null);
-  const router = useRouter();
+        pathname: "/(stack)/createpost",
 
-  const minZoom = device ? (device.minZoom < 1 ? device.minZoom : 1) : 1;
-  const maxZoom = device ? Math.min(device.maxZoom, 5) : 5;
-
-  const baseZoom = useSharedValue(1);
-  const pinchGesture = Gesture.Pinch()
-    .onStart(() => {
-      baseZoom.value = zoom;
-    })
+      const response = await cameraRef.current.takePhoto({
+        flash: cameraFlash,
+      });
+      console.error("Error taking photo:", error);
+        <View
+          style={styles.zoomControls}
+          pointerEvents={!isCameraMounted || isFrozen ? "none" : "auto"}
+        >
+            <SymbolView
+              name="minus"
+              type="hierarchical"
+              tintColor="white"
+              size={20}
+            />
+            <SymbolView
+              name="plus"
+              type="hierarchical"
+              tintColor="white"
+              size={20}
+            />
+        pointerEvents={
+          !isCameraMounted || isFrozen || toggleCooldown ? "none" : "auto"
+        }
+            tintColor={
+              !isCameraMounted || isFrozen || toggleCooldown ? "gray" : "white"
+            }
+    position: "relative",
+    position: "absolute",
+    flexDirection: "row",
+    alignSelf: "center",
+    alignItems: "center",
+    backgroundColor: "hsla(0,0%,0%,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    color: "white",
+    fontWeight: "bold",
     .onUpdate((e) => {
       const newZoom = Math.max(minZoom, Math.min(baseZoom.value * e.scale, maxZoom));
       runOnJS(setZoom)(newZoom);
