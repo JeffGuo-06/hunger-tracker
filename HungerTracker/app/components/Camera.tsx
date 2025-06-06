@@ -12,20 +12,20 @@ import { SymbolView } from "expo-symbols";
 import { useRouter } from "expo-router";
 import { colors } from "../theme";
 
-  const device = useCameraDevice(
+  const cameraDevice = useCameraDevice(
     cameraFacing,
     cameraFacing === 'back'
       ? { physicalDevices: ['ultra-wide-angle-camera', 'wide-angle-camera'] }
       : undefined,
   );
-  // clamp zoom whenever the camera device changes
-  useEffect(() => {
-    if (!device) return;
-    setZoom((z) => {
+  const minZoom = cameraDevice ? (cameraDevice.minZoom < 1 ? cameraDevice.minZoom : 1) : 1;
+  const maxZoom = cameraDevice ? Math.min(cameraDevice.maxZoom, 5) : 5;
+  const hasUltraWide = cameraDevice ? cameraDevice.minZoom < 1 : false;
+    if (!cameraDevice) return;
       const clamped = Math.min(Math.max(z, minZoom), maxZoom);
       return clamped;
     });
-  }, [device, minZoom, maxZoom]);
+  }, [cameraDevice, minZoom, maxZoom]);
 
   const [cameraFacing, setCameraFacing] = useState<CameraPosition>("back");
   const [cameraFlash, setCameraFlash] = useState<'on' | 'off'>("off");
@@ -112,20 +112,20 @@ import { colors } from "../theme";
   }
 
   function toggleUltraWide() {
-    if (!device || !hasUltraWide) return;
-    const ultra = device.minZoom;
+    if (!cameraDevice || !hasUltraWide) return;
+    const ultra = cameraDevice.minZoom;
     setZoom((z) => (Math.abs(z - ultra) < 0.01 ? 1 : ultra));
   }
 
 
   return (
     <View style={styles.container}>
-      {device && (
+      {cameraDevice && (
         <GestureDetector gesture={pinchGesture}>
           <VisionCamera
             key={cameraFacing}
             ref={cameraRef}
-            device={device}
+            device={cameraDevice}
             isActive={!isFrozen}
             photo
             zoom={zoom}
@@ -144,7 +144,7 @@ import { colors } from "../theme";
           />
         </View>
       )}
-      {device && (
+      {cameraDevice && (
         <View style={styles.zoomControls} pointerEvents={!isCameraMounted || isFrozen ? 'none' : 'auto'}>
           <TouchableOpacity onPress={zoomOut} style={styles.smallButton}>
             <SymbolView name="minus" type="hierarchical" tintColor="white" size={20} />
