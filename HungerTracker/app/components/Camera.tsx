@@ -25,7 +25,7 @@ export default function CameraView() {
   const cameraRef = useRef<VisionCamera>(null);
   const router = useRouter();
 
-  const minZoom = device ? Math.max(device.minZoom, 0.5) : 0.5;
+  const minZoom = device ? (device.minZoom < 1 ? device.minZoom : 1) : 1;
   const maxZoom = device ? Math.min(device.maxZoom, 5) : 5;
 
   const baseZoom = useSharedValue(1);
@@ -38,7 +38,7 @@ export default function CameraView() {
       runOnJS(setZoom)(newZoom);
     });
 
-  const hasUltraWide = device ? device.minZoom <= 0.5 : false;
+  const hasUltraWide = device ? device.minZoom < 1 : false;
 
   useEffect(() => {
     if (photo) {
@@ -99,7 +99,7 @@ export default function CameraView() {
 
   function toggleUltraWide() {
     if (!device || !hasUltraWide) return;
-    const ultra = minZoom;
+    const ultra = device.minZoom;
     setZoom((z) => (Math.abs(z - ultra) < 0.01 ? 1 : ultra));
   }
 
