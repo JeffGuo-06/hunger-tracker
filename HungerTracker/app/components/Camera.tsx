@@ -19,72 +19,113 @@ import { SymbolView } from "expo-symbols";
 import { useRouter } from "expo-router";
 import { colors } from "../theme";
 
+export default function Camera() {
+  const { hasPermission, requestPermission } = useCameraPermission();
+  const [cameraFacing, setCameraFacing] = useState<CameraPosition>("back");
   const [cameraFlash, setCameraFlash] = useState<"on" | "off">("off");
+  const [isCameraMounted, setIsCameraMounted] = useState(false);
+  const [isFrozen, setIsFrozen] = useState(false);
+  const [toggleCooldown, setToggleCooldown] = useState(false);
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const [displayZoom, setDisplayZoom] = useState(0.5);
+  const [isUltraWide, setIsUltraWide] = useState(false);
+  const baseZoom = useSharedValue(1);
+  const cameraRef = useRef<VisionCamera>(null);
+  const router = useRouter();
+
+  const cameraDevice = useCameraDevice(
     cameraFacing,
     cameraFacing === "back"
       ? { physicalDevices: ["ultra-wide-angle-camera", "wide-angle-camera"] }
       : undefined,
   );
-  const minZoom = cameraDevice
-    ? cameraDevice.minZoom < 1
-      ? cameraDevice.minZoom
-      : 1
-    : 1;
-  const maxZoom = cameraDevice ? Math.min(cameraDevice.maxZoom, 5) : 5;
-      const newZoom = Math.max(
-        minZoom,
-        Math.min(baseZoom.value * e.scale, maxZoom),
-      );
-    if (!cameraDevice) return;
-      const clamped = Math.min(Math.max(z, minZoom), maxZoom);
-      return clamped;
-    });
-  }, [cameraDevice, minZoom, maxZoom]);
 
-        pathname: "/(stack)/createpost",
+  const minZoom = isUltraWide ? 0.5 : 1;
+  const maxZoom = 6;
 
-      const response = await cameraRef.current.takePhoto({
-        flash: cameraFlash,
-      });
-      console.error("Error taking photo:", error);
-        <View
-          style={styles.zoomControls}
-          pointerEvents={!isCameraMounted || isFrozen ? "none" : "auto"}
-        >
-            <SymbolView
-              name="minus"
-              type="hierarchical"
-              tintColor="white"
-              size={20}
-            />
-            <SymbolView
-              name="plus"
-              type="hierarchical"
-              tintColor="white"
-              size={20}
-            />
-        pointerEvents={
-          !isCameraMounted || isFrozen || toggleCooldown ? "none" : "auto"
-        }
-            tintColor={
-              !isCameraMounted || isFrozen || toggleCooldown ? "gray" : "white"
-            }
-    position: "relative",
-    position: "absolute",
-    flexDirection: "row",
-    alignSelf: "center",
-    alignItems: "center",
-    backgroundColor: "hsla(0,0%,0%,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    color: "white",
-    fontWeight: "bold",
+  function updateDisplayZoom() {
+    // if (isUltraWide) {
+    //   if (zoom <= 0.5) {
+    //     setDisplayZoom(0.5);
+    //   } else if (zoom >= 1) {
+    //     setDisplayZoom(1);
+    //   } else {
+    //     // Linear interpolation between (0.5, 0.5) and (1, 1)
+    //     setDisplayZoom(0.5 + (zoom - 0.5));
+    //   }
+    // } else 
+    // {
+      if (zoom <= 1) {
+        setDisplayZoom(0.5);
+      } else if (zoom >= 6) { 
+        setDisplayZoom(5);
+      } else if (zoom <= 2) {
+        // Linear interpolation between (1, 0.5) and (2, 1)
+        setDisplayZoom(0.5 + (zoom - 1) * 0.5);
+      } else {
+        // Linear interpolation between (2, 1) and (6, 5)
+        setDisplayZoom(1 + (zoom - 2));
+      }
+    // }
+    console.log('Display Zoom:', displayZoom);
+  }
+
+  // Reset zoom when camera changes
+  useEffect(() => {
+    setZoom(1);
+    baseZoom.value = 1;
+    setIsUltraWide(false);
+    updateDisplayZoom();
+  }, [cameraFacing]);
+
+  const pinchGesture = Gesture.Pinch()
+    .onStart(() => {
+      baseZoom.value = zoom;
+    })
     .onUpdate((e) => {
-      const newZoom = Math.max(minZoom, Math.min(baseZoom.value * e.scale, maxZoom));
-      runOnJS(setZoom)(newZoom);
+      // Reduce sensitivity by using a smaller scale factor
+      const sensitivityFactor = 0.5;
+      const scaleFactor = 1 + (e.scale - 1) * sensitivityFactor;
+      const targetZoom = zoom * scaleFactor;
+      const zoomDelta = targetZoom - zoom;
+      
+      let newZoom;
+      if (targetZoom > maxZoom) {
+        const remainingZoom = maxZoom - zoom;
+        newZoom = zoom + remainingZoom;
+      } else if (targetZoom < minZoom) {
+        const remainingZoom = minZoom - zoom;
+        newZoom = zoom + remainingZoom;
+      } else {
+        newZoom = targetZoom;
+      }
+      
+      // Handle camera switching at zoom level 1.0
+      if (newZoom <= 1 && isUltraWide) {
+        if (newZoom >= 0.5) {
+          // Allow zooming between 0.5 and 1.0 in ultrawide mode
+          runOnJS(setZoom)(newZoom);
+          runOnJS(updateDisplayZoom)();
+        } else {
+          // Switch to normal wide angle when zooming below 0.5
+          runOnJS(setIsUltraWide)(false);
+          runOnJS(setZoom)(1);
+          runOnJS(updateDisplayZoom)();
+        }
+      } else if (newZoom >= 1 && !isUltraWide) {
+        runOnJS(setIsUltraWide)(true);
+        runOnJS(setZoom)(0.5);
+        runOnJS(updateDisplayZoom)();
+      } else if ((newZoom > minZoom && newZoom < maxZoom) || 
+          (newZoom === minZoom && zoomDelta < 0) || 
+          (newZoom === maxZoom && zoomDelta > 0)) {
+        runOnJS(setZoom)(newZoom);
+        runOnJS(updateDisplayZoom)();
+      }
     });
 
-  const hasUltraWide = device ? device.minZoom < 1 : false;
+  const hasUltraWide = cameraDevice ? cameraDevice.minZoom < 1 : false;
 
   useEffect(() => {
     if (photo) {
@@ -123,32 +164,76 @@ import { colors } from "../theme";
     );
   }
 
-  function toggleCameraFacing() {
+  async function toggleCameraFacing() {
     if (isFrozen || toggleCooldown) return;
+    
     setToggleCooldown(true);
-    setTimeout(() => setToggleCooldown(false), 500);
+    setIsFrozen(true);
     setIsCameraMounted(false);
+    
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     setCameraFacing((current) => (current === "back" ? "front" : "back"));
+    
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    setIsFrozen(false);
+    setToggleCooldown(false);
   }
 
   function toggleCameraFlash() {
     setCameraFlash((current) => (current === "off" ? "on" : "off"));
+    console.log('Display Zoom:', displayZoom);
   }
 
   function zoomIn() {
-    setZoom((z) => Math.min(z + 0.1, maxZoom));
+    if (zoom >= 1 && !isUltraWide) {
+      setIsUltraWide(true);
+      setZoom(0.5);
+      updateDisplayZoom();
+    } else {
+      const newZoom = Math.min(zoom + 0.1, maxZoom);
+      setZoom(newZoom);
+      updateDisplayZoom();
+    }
   }
 
   function zoomOut() {
-    setZoom((z) => Math.max(z - 0.1, minZoom));
+    if (zoom <= 0.5 && isUltraWide) {
+      setIsUltraWide(false);
+      setZoom(1);
+      updateDisplayZoom();
+    } else {
+      const newZoom = Math.max(zoom - 0.1, minZoom);
+      setZoom(newZoom);
+      updateDisplayZoom();
+    }
   }
 
   function toggleUltraWide() {
-    if (!cameraDevice || !hasUltraWide) return;
-    const ultra = cameraDevice.minZoom;
-    setZoom((z) => (Math.abs(z - ultra) < 0.01 ? 1 : ultra));
+    if (!cameraDevice) return;
+    
+    if (isUltraWide) {
+      setZoom(1);
+      setIsUltraWide(false);
+      updateDisplayZoom();
+    } else {
+      setZoom(0.5);
+      setIsUltraWide(true);
+      updateDisplayZoom();
+    }
   }
 
+  function toggleZoom() {
+    if (isUltraWide) {
+      setZoom(2);
+      setIsUltraWide(false);
+    } else {
+      setZoom(1);
+      setIsUltraWide(true);
+    }
+    updateDisplayZoom();
+  }
 
   return (
     <View style={styles.container}>
@@ -178,14 +263,10 @@ import { colors } from "../theme";
       )}
       {cameraDevice && (
         <View style={styles.zoomControls} pointerEvents={!isCameraMounted || isFrozen ? 'none' : 'auto'}>
-          <TouchableOpacity onPress={zoomOut} style={styles.smallButton}>
-            <SymbolView name="minus" type="hierarchical" tintColor="white" size={20} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={toggleUltraWide} style={styles.zoomCircle}>
-            <Text style={styles.zoomText}>{`${zoom.toFixed(1)}x`}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={zoomIn} style={styles.smallButton}>
-            <SymbolView name="plus" type="hierarchical" tintColor="white" size={20} />
+          <TouchableOpacity onPress={toggleZoom} style={styles.zoomCircle}>
+            <Text style={styles.zoomText}>
+              {`${displayZoom.toFixed(1)}x`}
+            </Text>
           </TouchableOpacity>
         </View>
       )}
@@ -246,7 +327,6 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    //backgroundColor: "hsla(0, 0%, 0%, 0.5)",
     justifyContent: "center",
     alignItems: "center",
   },
