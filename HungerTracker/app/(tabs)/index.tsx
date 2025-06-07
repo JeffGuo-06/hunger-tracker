@@ -6,7 +6,7 @@ import { colors, spacing } from "../theme";
 import { Link, router } from "expo-router";
 import MotiveInvitation from "../components/MotiveInvitation";
 import { LinearGradient } from "expo-linear-gradient";
-import { BottomSheet } from "@gorhom/bottom-sheet";
+import BottomSheet, { BottomSheetMethods } from "@gorhom/bottom-sheet";
 import FriendsBottomSheet from "../components/FriendsBottomSheet";
 import type MapView from "react-native-maps";
 
@@ -14,7 +14,7 @@ export default function Index() {
   const [showInvite, setShowInvite] = useState(false);
   const [showMotiveButton, setShowMotiveButton] = useState(true);
   const mapRef = useRef<MapView>(null);
-  const bottomSheetRef = useRef<BottomSheet>(null);
+  const bottomSheetRef = useRef<BottomSheetMethods>(null);
 
   const handleFriendPress = (friend: MapUser) => {
     bottomSheetRef.current?.snapToIndex(0);

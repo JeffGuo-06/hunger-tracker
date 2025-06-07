@@ -1,11 +1,11 @@
 import React, { useCallback, useMemo, MutableRefObject } from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
-import { BottomSheet, BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetView, BottomSheetBackdrop, BottomSheetMethods } from '@gorhom/bottom-sheet';
 import { colors, spacing, fontSizes } from '../theme';
 import Friend, { FriendData } from './Friend';
 
 interface Props {
-  bottomSheetRef: MutableRefObject<BottomSheet | null>;
+  bottomSheetRef: MutableRefObject<BottomSheetMethods | null>;
   friends: FriendData[];
   onFriendPress: (friend: FriendData) => void;
   onChange?: (index: number) => void;
