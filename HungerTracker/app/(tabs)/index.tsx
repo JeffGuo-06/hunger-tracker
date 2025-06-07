@@ -1,6 +1,5 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { View, Image, StyleSheet, TouchableOpacity } from "react-native";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { Ionicons } from "@expo/vector-icons";
 import MapScreen from "../components/MapScreen";
 import { colors, spacing } from "../theme";
@@ -9,7 +8,6 @@ import MotiveInvitation from "../components/MotiveInvitation";
 import { LinearGradient } from "expo-linear-gradient";
 
 export default function Index() {
-  const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [showInvite, setShowInvite] = useState(false);
 
   return (

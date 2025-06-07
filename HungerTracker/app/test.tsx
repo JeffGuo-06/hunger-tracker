@@ -1,15 +1,10 @@
-import React, { useRef } from 'react';
+import React, { useState } from 'react';
 import { View, Button, StyleSheet } from 'react-native';
-import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import CommentsBottomSheet from './components/CommentsBottomSheet';
 import { colors } from './theme';
 
 export default function TestBottomSheet() {
-  const bottomSheetRef = useRef<BottomSheetModal>(null);
-
-  const openSheet = () => {
-    bottomSheetRef.current?.present();
-  };
+  const [visible, setVisible] = useState(false);
 
   const comments = [
     {
@@ -25,8 +20,12 @@ export default function TestBottomSheet() {
 
   return (
     <View style={styles.container}>
-      <Button title="Open Comments" onPress={openSheet} />
-      <CommentsBottomSheet bottomSheetRef={bottomSheetRef} comments={comments} />
+      <Button title="Open Comments" onPress={() => setVisible(true)} />
+      <CommentsBottomSheet
+        visible={visible}
+        onClose={() => setVisible(false)}
+        comments={comments}
+      />
     </View>
   );
 }

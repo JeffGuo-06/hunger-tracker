@@ -4,8 +4,7 @@ import Post from "../components/Post";
 import CommentsBottomSheet from "../components/CommentsBottomSheet";
 import { CommentData } from "../components/Comment";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 // Example posts data
 const EXAMPLE_POSTS = [
@@ -69,11 +68,15 @@ const EXAMPLE_COMMENTS: CommentData[] = [
 ];
 
 export default function Feed() {
-  const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const [commentsVisible, setCommentsVisible] = useState(false);
   const [comments] = useState<CommentData[]>(EXAMPLE_COMMENTS);
 
   const openComments = () => {
-    bottomSheetRef.current?.present();
+    setCommentsVisible(true);
+  };
+
+  const closeComments = () => {
+    setCommentsVisible(false);
   };
 
   return (
@@ -86,7 +89,11 @@ export default function Feed() {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
       />
-      <CommentsBottomSheet bottomSheetRef={bottomSheetRef} comments={comments} />
+      <CommentsBottomSheet
+        visible={commentsVisible}
+        onClose={closeComments}
+        comments={comments}
+      />
     </SafeAreaView>
   );
 }

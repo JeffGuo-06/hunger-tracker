@@ -1,55 +1,50 @@
-import React, { useCallback, useMemo } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { BottomSheetModal, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+import Modal from 'react-native-modal';
 import { colors } from '../theme';
 
-type FriendsBottomSheetProps = {
-  bottomSheetRef: React.RefObject<BottomSheetModal | null>;
-};
+interface Props {
+  visible: boolean;
+  onClose: () => void;
+}
 
-export default function FriendsBottomSheet({ bottomSheetRef }: FriendsBottomSheetProps) {
-  const snapPoints = useMemo(() => ['50%'], []);
-
-  const renderBackdrop = useCallback(
-    (props: any) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-        opacity={0.5}
-      />
-    ),
-    []
-  );
-
+export default function FriendsBottomSheet({ visible, onClose }: Props) {
   return (
-    <BottomSheetModal
-      ref={bottomSheetRef}
-      index={0}
-      snapPoints={snapPoints}
-      backdropComponent={renderBackdrop}
-      backgroundStyle={styles.bottomSheetBackground}
-      handleIndicatorStyle={styles.handleIndicator}
+    <Modal
+      isVisible={visible}
+      onBackdropPress={onClose}
+      swipeDirection="down"
+      onSwipeComplete={onClose}
+      style={styles.modal}
+      useNativeDriverForBackdrop
     >
-      <View style={styles.contentContainer}>
+      <View style={styles.container}>
+        <View style={styles.handle} />
         <Text style={styles.title}>Friends</Text>
         <Text style={styles.subtitle}>This is a test bottom sheet</Text>
       </View>
-    </BottomSheetModal>
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  bottomSheetBackground: {
+  modal: {
+    justifyContent: 'flex-end',
+    margin: 0,
+  },
+  container: {
     backgroundColor: colors.bg[1],
-  },
-  handleIndicator: {
-    backgroundColor: colors.bg[3],
-    width: 40,
-  },
-  contentContainer: {
-    flex: 1,
     padding: 16,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.bg[3],
+    alignSelf: 'center',
+    marginBottom: 8,
   },
   title: {
     fontSize: 24,

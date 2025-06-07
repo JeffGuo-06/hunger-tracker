@@ -4,7 +4,6 @@ import "react-native-gesture-handler";
 import "../global.css";
 import { useFonts } from "expo-font";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { colors } from "./theme";
 
 // Set this to true when you want to re-enable authentication
@@ -29,8 +28,7 @@ export default function Layout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.bg[1] }}>
-      <BottomSheetModalProvider>
-        <Stack screenOptions={{ headerShown: false }}>
+      <Stack screenOptions={{ headerShown: false }}>
           {!REQUIRE_AUTH ? (
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           ) : (
@@ -41,7 +39,6 @@ export default function Layout() {
             </>
           )}
         </Stack>
-      </BottomSheetModalProvider>
     </GestureHandlerRootView>
   );
 }
