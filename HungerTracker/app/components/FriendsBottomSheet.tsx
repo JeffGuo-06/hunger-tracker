@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, MutableRefObject } from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
-import BottomSheet, { BottomSheetView, BottomSheetBackdrop, BottomSheetMethods } from '@gorhom/bottom-sheet';
+import { Text, StyleSheet, FlatList } from 'react-native';
+import BottomSheet, { BottomSheetView, BottomSheetMethods } from '@gorhom/bottom-sheet';
 import { colors, spacing, fontSizes } from '../theme';
 import Friend, { FriendData } from './Friend';
 
@@ -18,17 +18,6 @@ export default function FriendsBottomSheet({ bottomSheetRef, friends, onFriendPr
     onChange?.(index);
   }, [onChange]);
 
-  const renderBackdrop = useCallback(
-    (props: any) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-        opacity={0.5}
-      />
-    ),
-    []
-  );
 
   return (
     <BottomSheet
@@ -36,7 +25,7 @@ export default function FriendsBottomSheet({ bottomSheetRef, friends, onFriendPr
       index={1}
       snapPoints={snapPoints}
       onChange={handleSheetChanges}
-      backdropComponent={renderBackdrop}
+      enablePanDownToClose={false}
       handleIndicatorStyle={styles.handle}
       backgroundStyle={styles.background}
       bottomInset={0}
@@ -70,8 +59,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg[1],
   },
   sheet: {
-    zIndex: 0,
-    elevation: 0,
+    zIndex: 1002,
+    elevation: 1002,
   },
   handle: {
     width: 40,
