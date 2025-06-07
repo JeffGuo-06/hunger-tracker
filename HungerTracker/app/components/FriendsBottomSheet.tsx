@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default function FriendsBottomSheet({ bottomSheetRef, friends, onFriendPress, onChange }: Props) {
-  const snapPoints = useMemo(() => ['10%', '60%', '80%'], []);
+  const snapPoints = useMemo(() => ['10%', '25%', '80%'], []);
 
   const handleSheetChanges = useCallback((index: number) => {
     onChange?.(index);

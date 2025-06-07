@@ -31,7 +31,7 @@ export default function Index() {
   };
 
   const handleSheetChange = (index: number) => {
-    setShowMotiveButton(index < 2);
+    setShowMotiveButton(index < 1);
   };
 
   return (
