@@ -1,5 +1,8 @@
 import {
   View,
+    const openComments = React.useCallback(() => {
+        bottomSheetRef.current?.present();
+    }, []);
   Text,
   Image,
   StyleSheet,
@@ -145,8 +148,8 @@ export default function Post({
       });
       offsetY.value = withSpring(0, {
         damping: 50,
-        stiffness: 400,
-        mass: 0.5,
+                <Animated.View style={[styles.commentOverlay, commentButtonStyle]}> 
+                    <TouchableOpacity onPress={openComments}> 
       });
       isInitialPinch.value = true;
     });
@@ -205,6 +208,7 @@ export default function Post({
               <Ionicons name="chatbubble" size={24} color={colors.text[1]} />
               <Text style={styles.comments}>{post.comments}</Text>
             </View>
+        zIndex: 1,
           </TouchableOpacity>
         </Animated.View>
       </View>

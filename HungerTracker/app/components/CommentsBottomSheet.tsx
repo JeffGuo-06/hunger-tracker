@@ -5,7 +5,7 @@ import { colors, spacing, fontSizes } from '../theme';
 import Comment, { CommentData } from './Comment';
 
 interface Props {
-  bottomSheetRef: React.RefObject<BottomSheetModal | null>;
+  bottomSheetRef: React.RefObject<BottomSheetModal>;
   comments: CommentData[];
 }
 
