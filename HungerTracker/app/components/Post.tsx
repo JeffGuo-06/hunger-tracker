@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useCallback, MutableRefObject } from "react";
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import {
   Gesture,
   GestureDetector,
+  GestureHandlerRootView,
 } from "react-native-gesture-handler";
 import Animated, {
   useAnimatedStyle,
@@ -38,8 +39,7 @@ type PostProps = {
 };
 
 export default function Post({ post, onCommentsPress }: PostProps) {
-  const bottomSheetRef = useRef<BottomSheetModal>(null);
-  const [isCommentsVisible, setIsCommentsVisible] = useState(false);
+  const bottomSheetRef = useRef<BottomSheetModal>(null) as MutableRefObject<BottomSheetModal>;
 
   const exampleComments = [
     {
@@ -177,45 +177,53 @@ export default function Post({ post, onCommentsPress }: PostProps) {
     transform: [{ scale: scale.value > 1 ? 0.8 : 1 }],
   }));
 
+  const handlePresentPress = useCallback(() => {
+    console.log("Attempting to present bottom sheet");
+    if (bottomSheetRef.current) {
+      bottomSheetRef.current.present();
+      console.log("Bottom sheet presented");
+    } else {
+      console.log("Bottom sheet ref is null");
+    }
+  }, []);
+
   return (
-    <View style={styles.container}>
-      <Link href="/(stack)/viewprofile" asChild>
-        <TouchableOpacity style={styles.header}>
-          <Image source={post.user.profileImage} style={styles.profileImage} />
-          <View style={styles.userInfo}>
-            <Text style={styles.userName}>{post.user.name}</Text>
-            <Text style={styles.subtitle}>{post.subtitle}</Text>
-          </View>
-        </TouchableOpacity>
-      </Link>
-      <View style={styles.imageContainer}>
-        <GestureDetector gesture={composed}>
-          <Animated.View style={styles.imageContainer}>
-            <Animated.Image
-              source={post.imageUrl}
-              style={[styles.image, animatedStyle]}
-              resizeMode="cover"
-            />
-          </Animated.View>
-        </GestureDetector>
-        <Animated.View style={[styles.commentOverlay, commentButtonStyle]}>
-          <TouchableOpacity onPress={() => {
-            setIsCommentsVisible(true);
-            console.log("Pressed");
-          }}>
-            <View style={styles.infoContainer}>
-              <Ionicons name="chatbubble" size={24} color={colors.text[1]} />
-              <Text style={styles.comments}>{post.comments}</Text>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={styles.container}>
+        <Link href="/(stack)/viewprofile" asChild>
+          <TouchableOpacity style={styles.header}>
+            <Image source={post.user.profileImage} style={styles.profileImage} />
+            <View style={styles.userInfo}>
+              <Text style={styles.userName}>{post.user.name}</Text>
+              <Text style={styles.subtitle}>{post.subtitle}</Text>
             </View>
           </TouchableOpacity>
-        </Animated.View>
+        </Link>
+        <View style={styles.imageContainer}>
+          <GestureDetector gesture={composed}>
+            <Animated.View style={styles.imageContainer}>
+              <Animated.Image
+                source={post.imageUrl}
+                style={[styles.image, animatedStyle]}
+                resizeMode="cover"
+              />
+            </Animated.View>
+          </GestureDetector>
+          <Animated.View style={[styles.commentOverlay, commentButtonStyle]}>
+            <TouchableOpacity onPress={handlePresentPress}>
+              <View style={styles.infoContainer}>
+                <Ionicons name="chatbubble" size={24} color={colors.text[1]} />
+                <Text style={styles.comments}>{post.comments}</Text>
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+        <CommentsBottomSheet
+          bottomSheetRef={bottomSheetRef}
+          comments={exampleComments}
+        />
       </View>
-      <CommentsBottomSheet
-        visible={isCommentsVisible}
-        onClose={() => setIsCommentsVisible(false)}
-        comments={exampleComments}
-      />
-    </View>
+    </GestureHandlerRootView>
   );
 }
 

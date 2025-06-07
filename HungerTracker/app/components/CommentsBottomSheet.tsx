@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo, MutableRefObject } from 'react';
 import {
   View,
   Text,
@@ -8,39 +8,48 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import Modal from 'react-native-modal';
+import { BottomSheetModal, BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import { colors, spacing, fontSizes } from '../theme';
 import Comment, { CommentData } from './Comment';
 
 interface Props {
-  visible: boolean;
-  onClose: () => void;
+  bottomSheetRef: MutableRefObject<BottomSheetModal>;
   comments: CommentData[];
 }
 
-export default function CommentsBottomSheet({ visible, onClose, comments }: Props) {
+export default function CommentsBottomSheet({ bottomSheetRef, comments }: Props) {
+  // Variables
+  const snapPoints = useMemo(() => ['50%', '90%'], []);
+
+  // Callbacks
+  const handleSheetChanges = useCallback((index: number) => {
+    console.log('handleSheetChanges', index);
+  }, []);
+
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.5}
+      />
+    ),
+    []
+  );
+
   return (
-    <Modal
-      isVisible={visible}
-      onBackdropPress={onClose}
-      swipeDirection={['up', 'down']}
-      onSwipeComplete={onClose}
-      style={styles.modal}
-      propagateSwipe
-      useNativeDriverForBackdrop
-      swipeThreshold={50}
-      backdropTransitionOutTiming={0}
-      hideModalContentWhileAnimating
-      onSwipeMove={(percentageShown) => {
-        // Optional: Add any custom behavior during swipe
-        console.log('Swipe percentage:', percentageShown);
-      }}
+    <BottomSheetModal
+      ref={bottomSheetRef}
+      index={0}
+      snapPoints={snapPoints}
+      onChange={handleSheetChanges}
+      backdropComponent={renderBackdrop}
+      enablePanDownToClose
+      handleIndicatorStyle={styles.handle}
+      backgroundStyle={styles.background}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.container}
-      >
-        <View style={styles.handle} />
+      <BottomSheetView style={styles.container}>
         <Text style={styles.countText}>{comments.length} comments</Text>
         <FlatList
           data={comments}
@@ -57,30 +66,25 @@ export default function CommentsBottomSheet({ visible, onClose, comments }: Prop
             placeholderTextColor={colors.text[2]}
           />
         </View>
-      </KeyboardAvoidingView>
-    </Modal>
+      </BottomSheetView>
+    </BottomSheetModal>
   );
 }
 
 const styles = StyleSheet.create({
-  modal: {
-    justifyContent: 'flex-end',
-    margin: 0,
-  },
   container: {
+    flex: 1,
     backgroundColor: colors.bg[1],
     padding: spacing.md,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    maxHeight: '80%',
+  },
+  background: {
+    backgroundColor: colors.bg[1],
   },
   handle: {
     width: 40,
     height: 4,
-    borderRadius: 2,
     backgroundColor: colors.bg[3],
-    alignSelf: 'center',
-    marginBottom: spacing.md,
+    borderRadius: 2,
   },
   countText: {
     fontSize: fontSizes.large,
