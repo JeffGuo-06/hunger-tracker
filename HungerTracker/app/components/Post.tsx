@@ -1,41 +1,45 @@
-type PostData = {
-    id: string;
-    user: { name: string; profileImage: any };
-    subtitle: string;
-    imageUrl: any;
-    comments: number;
-};
-type PostProps = {
-    post: PostData;
-    onCommentsPress?: () => void;
-};
-
-export default function Post({ post, onCommentsPress }: PostProps) {
-  useAnimatedGestureHandler,
-  ReanimatedLogLevel,
-  configureReanimatedLogger,
-} from "react-native-reanimated";
+import React, { useRef, useState } from "react";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+} from "react-native";
 import { Link } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { colors } from "../theme";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import {
+  Gesture,
+  GestureDetector,
+} from "react-native-gesture-handler";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
+import CommentsBottomSheet from "./CommentsBottomSheet";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-configureReanimatedLogger({
-  level: ReanimatedLogLevel.warn,
-  strict: false, // Reanimated runs in strict mode by default
-});
+type PostData = {
+  id: string;
+  user: { name: string; profileImage: any };
+  subtitle: string;
+  imageUrl: any;
+  comments: number;
+};
 
-export default function Post({
-  post,
-}: {
-  post: {
-    id: string;
-    user: { name: string; profileImage: any };
-    subtitle: string;
-    imageUrl: any;
-    comments: number;
-  };
-}) {
+type PostProps = {
+  post: PostData;
+  onCommentsPress?: () => void;
+};
+
+export default function Post({ post, onCommentsPress }: PostProps) {
   const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const [isCommentsVisible, setIsCommentsVisible] = useState(false);
 
   const exampleComments = [
     {
@@ -57,6 +61,7 @@ export default function Post({
       text: "Can't wait to try this.",
     },
   ];
+
   const scale = useSharedValue(1);
   const offsetX = useSharedValue(0);
   const offsetY = useSharedValue(0);
@@ -139,8 +144,9 @@ export default function Post({
       });
       offsetY.value = withSpring(0, {
         damping: 50,
-                <Animated.View style={[styles.commentOverlay, commentButtonStyle]}>
-                    <TouchableOpacity onPress={onCommentsPress}>
+        stiffness: 400,
+        mass: 0.5,
+      });
       isInitialPinch.value = true;
     });
 
@@ -193,17 +199,20 @@ export default function Post({
           </Animated.View>
         </GestureDetector>
         <Animated.View style={[styles.commentOverlay, commentButtonStyle]}>
-          <TouchableOpacity onPress={() => bottomSheetRef.current?.present()}>
+          <TouchableOpacity onPress={() => {
+            setIsCommentsVisible(true);
+            console.log("Pressed");
+          }}>
             <View style={styles.infoContainer}>
               <Ionicons name="chatbubble" size={24} color={colors.text[1]} />
               <Text style={styles.comments}>{post.comments}</Text>
             </View>
-        zIndex: 1,
           </TouchableOpacity>
         </Animated.View>
       </View>
       <CommentsBottomSheet
-        bottomSheetRef={bottomSheetRef}
+        visible={isCommentsVisible}
+        onClose={() => setIsCommentsVisible(false)}
         comments={exampleComments}
       />
     </View>
@@ -256,6 +265,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 1,
     shadowRadius: 2,
+    zIndex: 1,
   },
   infoContainer: {
     flexDirection: "row",

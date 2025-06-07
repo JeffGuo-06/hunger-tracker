@@ -23,11 +23,18 @@ export default function CommentsBottomSheet({ visible, onClose, comments }: Prop
     <Modal
       isVisible={visible}
       onBackdropPress={onClose}
-      swipeDirection="down"
+      swipeDirection={['up', 'down']}
       onSwipeComplete={onClose}
       style={styles.modal}
       propagateSwipe
       useNativeDriverForBackdrop
+      swipeThreshold={50}
+      backdropTransitionOutTiming={0}
+      hideModalContentWhileAnimating
+      onSwipeMove={(percentageShown) => {
+        // Optional: Add any custom behavior during swipe
+        console.log('Swipe percentage:', percentageShown);
+      }}
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -41,6 +48,7 @@ export default function CommentsBottomSheet({ visible, onClose, comments }: Prop
           renderItem={({ item }) => <Comment comment={item} />}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
+          bounces={false}
         />
         <View style={styles.inputRow}>
           <TextInput
