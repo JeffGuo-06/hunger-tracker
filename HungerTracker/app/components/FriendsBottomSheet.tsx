@@ -1,11 +1,11 @@
 import React, { useCallback, useMemo, MutableRefObject } from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
-import { BottomSheetModal, BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+import { BottomSheet, BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import { colors, spacing, fontSizes } from '../theme';
 import Friend, { FriendData } from './Friend';
 
 interface Props {
-  bottomSheetRef: MutableRefObject<BottomSheetModal | null>;
+  bottomSheetRef: MutableRefObject<BottomSheet | null>;
   friends: FriendData[];
   onFriendPress: (friend: FriendData) => void;
   onChange?: (index: number) => void;
@@ -31,15 +31,17 @@ export default function FriendsBottomSheet({ bottomSheetRef, friends, onFriendPr
   );
 
   return (
-    <BottomSheetModal
+    <BottomSheet
       ref={bottomSheetRef}
-      index={0}
+      index={1}
       snapPoints={snapPoints}
       onChange={handleSheetChanges}
       backdropComponent={renderBackdrop}
       enablePanDownToClose
       handleIndicatorStyle={styles.handle}
       backgroundStyle={styles.background}
+      bottomInset={70}
+      style={styles.sheet}
     >
       <BottomSheetView style={styles.container}>
         <Text style={styles.title}>Friends</Text>
@@ -47,12 +49,16 @@ export default function FriendsBottomSheet({ bottomSheetRef, friends, onFriendPr
           data={friends}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <Friend friend={item} onPress={() => onFriendPress(item)} />
+            <Friend
+              friend={item}
+              onPress={() => onFriendPress(item)}
+              onInvite={() => bottomSheetRef.current?.close()}
+            />
           )}
           showsVerticalScrollIndicator={false}
         />
       </BottomSheetView>
-    </BottomSheetModal>
+    </BottomSheet>
   );
 }
 
@@ -63,6 +69,10 @@ const styles = StyleSheet.create({
   },
   background: {
     backgroundColor: colors.bg[1],
+  },
+  sheet: {
+    zIndex: 0,
+    elevation: 0,
   },
   handle: {
     width: 40,

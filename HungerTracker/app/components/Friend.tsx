@@ -11,10 +11,12 @@ export interface FriendData extends MapUser {
 interface Props {
   friend: FriendData;
   onPress?: () => void;
+  onInvite?: () => void;
 }
 
-export default function Friend({ friend, onPress }: Props) {
+export default function Friend({ friend, onPress, onInvite }: Props) {
   const handleInvite = () => {
+    onInvite?.();
     router.push('/(stack)/motivecreate');
   };
 

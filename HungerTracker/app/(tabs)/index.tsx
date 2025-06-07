@@ -3,10 +3,10 @@ import { View, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import MapScreen, { EXAMPLE_USERS, MapUser } from "../components/MapScreen";
 import { colors, spacing } from "../theme";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import MotiveInvitation from "../components/MotiveInvitation";
 import { LinearGradient } from "expo-linear-gradient";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { BottomSheet } from "@gorhom/bottom-sheet";
 import FriendsBottomSheet from "../components/FriendsBottomSheet";
 import type MapView from "react-native-maps";
 
@@ -14,10 +14,10 @@ export default function Index() {
   const [showInvite, setShowInvite] = useState(false);
   const [showMotiveButton, setShowMotiveButton] = useState(true);
   const mapRef = useRef<MapView>(null);
-  const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const bottomSheetRef = useRef<BottomSheet>(null);
 
   const handleFriendPress = (friend: MapUser) => {
-    bottomSheetRef.current?.dismiss();
+    bottomSheetRef.current?.snapToIndex(0);
     mapRef.current?.animateToRegion(
       {
         ...friend.location,
@@ -51,21 +51,17 @@ export default function Index() {
           />
         </TouchableOpacity>
       </Link>
-      {/* Friends Button */}
-      <TouchableOpacity
-        style={styles.friendsButton}
-        onPress={() => bottomSheetRef.current?.present()}
-      >
-        <Ionicons name="people" size={24} color={colors.text[1]} />
-      </TouchableOpacity>
       {/* Motive Create Button */}
       {showMotiveButton && (
         <LinearGradient colors={colors.grad.p1} style={styles.motiveButton}>
-          <Link href="/(stack)/motivecreate" asChild>
-            <TouchableOpacity>
-              <Ionicons name="add" size={24} color={colors.text[1]} />
-            </TouchableOpacity>
-          </Link>
+          <TouchableOpacity
+            onPress={() => {
+              bottomSheetRef.current?.close();
+              router.push('/(stack)/motivecreate');
+            }}
+          >
+            <Ionicons name="add" size={24} color={colors.text[1]} />
+          </TouchableOpacity>
         </LinearGradient>
       )}
 
@@ -160,19 +156,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     zIndex: 2000,
     backgroundColor: "rgba(0,0,0,0.15)",
-  },
-  friendsButton: {
-    position: "absolute",
-    bottom: spacing.xl,
-    left: spacing.xl,
-    backgroundColor: colors.bg[1],
-    padding: spacing.md,
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    zIndex: 1001,
   },
 });
