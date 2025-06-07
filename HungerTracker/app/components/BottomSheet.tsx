@@ -1,75 +1,47 @@
-import React, { useCallback, useRef, useMemo } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
-import BottomSheet, { BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+import Modal from 'react-native-modal';
 import { colors, spacing } from '../theme';
 
 export default function BottomSheetExample() {
-  console.log('Rendering BottomSheetExample');
-  const bottomSheetRef = useRef<BottomSheet>(null);
-  
-  // Memoize snap points
-  const snapPoints = useMemo(() => ['25%', '50%', '90%'], []);
-
-  const handlePresentPress = useCallback(() => {
-    console.log('Button pressed');
-    try {
-      if (bottomSheetRef.current) {
-        console.log('Snapping to index 0...');
-        bottomSheetRef.current.snapToIndex(0);
-      } else {
-        console.error('Bottom sheet ref is null');
-      }
-    } catch (error) {
-      console.error('Error presenting bottom sheet:', error);
-    }
-  }, []);
-
-  // Render backdrop
-  const renderBackdrop = useCallback(
-    (props: any) => (
-      <BottomSheetBackdrop
-        {...props}
-        disappearsOnIndex={-1}
-        appearsOnIndex={0}
-      />
-    ),
-    []
-  );
+  const [visible, setVisible] = useState(false);
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity 
-        style={styles.button}
-        onPress={handlePresentPress}
-      >
+      <TouchableOpacity style={styles.button} onPress={() => setVisible(true)}>
         <Text style={styles.buttonText}>Open Bottom Sheet</Text>
       </TouchableOpacity>
 
-      <BottomSheet
-        ref={bottomSheetRef}
-        index={-1}
-        snapPoints={snapPoints}
-        enablePanDownToClose
-        backdropComponent={renderBackdrop}
-        onChange={(index) => console.log('Sheet index changed:', index)}
+      <Modal
+        isVisible={visible}
+        onBackdropPress={() => setVisible(false)}
+        swipeDirection="down"
+        onSwipeComplete={() => setVisible(false)}
+        style={styles.modal}
+        useNativeDriverForBackdrop
       >
         <View style={styles.contentContainer}>
+          <View style={styles.handle} />
           <Text style={styles.title}>This is a Bottom Sheet</Text>
           <Text style={styles.subtitle}>You can drag it up and down</Text>
         </View>
-      </BottomSheet>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  modal: {
+    justifyContent: 'flex-end',
+    margin: 0,
+  },
   container: {
     flex: 1,
     padding: 24,
     backgroundColor: colors.bg[1],
   },
   button: {
-   background: colors.grad[1],
+    backgroundColor: colors.grad[1],
     padding: spacing.md,
     borderRadius: 8,
     marginBottom: spacing.sm,
@@ -81,10 +53,18 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   contentContainer: {
-    flex: 1,
+    backgroundColor: colors.bg[1],
     padding: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.bg[3],
+    alignSelf: 'center',
+    marginBottom: spacing.md,
   },
   title: {
     fontSize: 24,

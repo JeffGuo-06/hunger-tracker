@@ -4,13 +4,13 @@ import "react-native-gesture-handler";
 import "../global.css";
 import { useFonts } from "expo-font";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { colors } from "./theme";
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 
 // Set this to true when you want to re-enable authentication
 const REQUIRE_AUTH = false;
 
-export default function Layout() {
+export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     "Poppins-Thin": require("../assets/fonts/Poppins-Thin.ttf"),
     "Poppins-ExtraLight": require("../assets/fonts/Poppins-ExtraLight.ttf"),
