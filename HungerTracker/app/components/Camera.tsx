@@ -56,7 +56,6 @@ export default function Camera() {
       // Linear interpolation between (2, 1) and (6, 5)
       setDisplayZoom(1 + (zoom - 2));
     }
-    console.log('Display Zoom:', displayZoom);
   }
 
   // Reset zoom when camera changes
@@ -171,7 +170,6 @@ export default function Camera() {
 
   function toggleCameraFlash() {
     setCameraFlash((current) => (current === "off" ? "on" : "off"));
-    console.log('Display Zoom:', displayZoom);
   }
 
   function zoomIn() { 
