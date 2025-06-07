@@ -1,25 +1,16 @@
-import {
-  View,
-    const openComments = React.useCallback(() => {
-        bottomSheetRef.current?.present();
-    }, []);
-  Text,
-  Image,
-  StyleSheet,
-  Dimensions,
-  TouchableOpacity,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { colors } from "../theme";
-import { GestureDetector, Gesture } from "react-native-gesture-handler";
-import { useRef } from "react";
-import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import CommentsBottomSheet from "./CommentsBottomSheet";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  runOnJS,
+type PostData = {
+    id: string;
+    user: { name: string; profileImage: any };
+    subtitle: string;
+    imageUrl: any;
+    comments: number;
+};
+type PostProps = {
+    post: PostData;
+    onCommentsPress?: () => void;
+};
+
+export default function Post({ post, onCommentsPress }: PostProps) {
   useAnimatedGestureHandler,
   ReanimatedLogLevel,
   configureReanimatedLogger,
@@ -148,9 +139,8 @@ export default function Post({
       });
       offsetY.value = withSpring(0, {
         damping: 50,
-                <Animated.View style={[styles.commentOverlay, commentButtonStyle]}> 
-                    <TouchableOpacity onPress={openComments}> 
-      });
+                <Animated.View style={[styles.commentOverlay, commentButtonStyle]}>
+                    <TouchableOpacity onPress={onCommentsPress}>
       isInitialPinch.value = true;
     });
 

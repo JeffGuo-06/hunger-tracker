@@ -1,7 +1,11 @@
-import { View, StyleSheet, Alert, FlatList} from "react-native";
+import { View, StyleSheet, Alert, FlatList } from "react-native";
 import { colors } from "../theme";
 import Post from "../components/Post";
+import CommentsBottomSheet from "../components/CommentsBottomSheet";
+import { CommentData } from "../components/Comment";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useRef, useState } from "react";
 
 // Example posts data
 const EXAMPLE_POSTS = [
@@ -49,9 +53,27 @@ const EXAMPLE_POSTS = [
   },
 ];
 
+const EXAMPLE_COMMENTS: CommentData[] = [
+  {
+    id: '1',
+    user: { name: 'Jeff Guo', profileImage: require('../../assets/images/placeholder/jeff-profile.jpg') },
+    time: '2h',
+    text: 'Looks delicious!'
+  },
+  {
+    id: '2',
+    user: { name: 'Jane Smith', profileImage: require('../../assets/images/placeholder/jeff-profile.jpg') },
+    time: '1h',
+    text: "Can't wait to try this."
+  }
+];
+
 export default function Feed() {
-  const handlePostPress = (post: typeof EXAMPLE_POSTS[0]) => {
-    Alert.alert('Post Details', `Comments: ${post.comments}`);
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const [comments] = useState<CommentData[]>(EXAMPLE_COMMENTS);
+
+  const openComments = () => {
+    bottomSheetRef.current?.present();
   };
 
   return (
@@ -59,11 +81,12 @@ export default function Feed() {
       <FlatList
         data={EXAMPLE_POSTS}
         renderItem={({ item }) => (
-          <Post post={item} />
+          <Post post={item} onCommentsPress={openComments} />
         )}
-        keyExtractor={item => item.id}
+        keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
       />
+      <CommentsBottomSheet bottomSheetRef={bottomSheetRef} comments={comments} />
     </SafeAreaView>
   );
 }
