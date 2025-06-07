@@ -1,0 +1,41 @@
+import React, { useRef } from 'react';
+import { View, Button, StyleSheet } from 'react-native';
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
+import CommentsBottomSheet from './components/CommentsBottomSheet';
+import { colors } from './theme';
+
+export default function TestBottomSheet() {
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
+
+  const openSheet = () => {
+    bottomSheetRef.current?.present();
+  };
+
+  const comments = [
+    {
+      id: '1',
+      user: {
+        name: 'Test User',
+        profileImage: require('../assets/images/placeholder/jeff-profile.jpg'),
+      },
+      time: 'now',
+      text: 'Example comment',
+    },
+  ];
+
+  return (
+    <View style={styles.container}>
+      <Button title="Open Comments" onPress={openSheet} />
+      <CommentsBottomSheet bottomSheetRef={bottomSheetRef} comments={comments} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.bg[1],
+  },
+});
