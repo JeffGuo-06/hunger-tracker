@@ -1,58 +1,80 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import Modal from 'react-native-modal';
-import { colors } from '../theme';
+import React, { useCallback, useMemo, MutableRefObject } from 'react';
+import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { BottomSheetModal, BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+import { colors, spacing, fontSizes } from '../theme';
+import Friend, { FriendData } from './Friend';
 
 interface Props {
-  visible: boolean;
-  onClose: () => void;
+  bottomSheetRef: MutableRefObject<BottomSheetModal | null>;
+  friends: FriendData[];
+  onFriendPress: (friend: FriendData) => void;
+  onChange?: (index: number) => void;
 }
 
-export default function FriendsBottomSheet({ visible, onClose }: Props) {
+export default function FriendsBottomSheet({ bottomSheetRef, friends, onFriendPress, onChange }: Props) {
+  const snapPoints = useMemo(() => ['25%', '60%', '90%'], []);
+
+  const handleSheetChanges = useCallback((index: number) => {
+    onChange?.(index);
+  }, [onChange]);
+
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.5}
+      />
+    ),
+    []
+  );
+
   return (
-    <Modal
-      isVisible={visible}
-      onBackdropPress={onClose}
-      swipeDirection="down"
-      onSwipeComplete={onClose}
-      style={styles.modal}
-      useNativeDriverForBackdrop
+    <BottomSheetModal
+      ref={bottomSheetRef}
+      index={0}
+      snapPoints={snapPoints}
+      onChange={handleSheetChanges}
+      backdropComponent={renderBackdrop}
+      enablePanDownToClose
+      handleIndicatorStyle={styles.handle}
+      backgroundStyle={styles.background}
     >
-      <View style={styles.container}>
-        <View style={styles.handle} />
+      <BottomSheetView style={styles.container}>
         <Text style={styles.title}>Friends</Text>
-        <Text style={styles.subtitle}>This is a test bottom sheet</Text>
-      </View>
-    </Modal>
+        <FlatList
+          data={friends}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <Friend friend={item} onPress={() => onFriendPress(item)} />
+          )}
+          showsVerticalScrollIndicator={false}
+        />
+      </BottomSheetView>
+    </BottomSheetModal>
   );
 }
 
 const styles = StyleSheet.create({
-  modal: {
-    justifyContent: 'flex-end',
-    margin: 0,
-  },
   container: {
+    flex: 1,
     backgroundColor: colors.bg[1],
-    padding: 16,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+  },
+  background: {
+    backgroundColor: colors.bg[1],
   },
   handle: {
     width: 40,
     height: 4,
-    borderRadius: 2,
     backgroundColor: colors.bg[3],
-    alignSelf: 'center',
-    marginBottom: 8,
+    borderRadius: 2,
   },
   title: {
-    fontSize: 24,
+    fontSize: fontSizes.large,
     color: colors.text[1],
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: colors.text[2],
+    fontWeight: '600',
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.md,
   },
 });
