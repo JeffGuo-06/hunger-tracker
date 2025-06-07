@@ -7,6 +7,7 @@ import { Link, router } from "expo-router";
 import MotiveInvitation from "../components/MotiveInvitation";
 import { LinearGradient } from "expo-linear-gradient";
 import BottomSheet, { BottomSheetMethods } from "@gorhom/bottom-sheet";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import FriendsBottomSheet from "../components/FriendsBottomSheet";
 import type MapView from "react-native-maps";
 
@@ -15,6 +16,7 @@ export default function Index() {
   const [showMotiveButton, setShowMotiveButton] = useState(true);
   const mapRef = useRef<MapView>(null);
   const bottomSheetRef = useRef<BottomSheetMethods>(null);
+  const tabBarHeight = useBottomTabBarHeight();
 
   const handleFriendPress = (friend: MapUser) => {
     bottomSheetRef.current?.snapToIndex(0);
@@ -53,10 +55,13 @@ export default function Index() {
       </Link>
       {/* Motive Create Button */}
       {showMotiveButton && (
-        <LinearGradient colors={colors.grad.p1} style={styles.motiveButton}>
+        <LinearGradient
+          colors={colors.grad.p1}
+          style={[styles.motiveButton, { bottom: tabBarHeight + spacing.xl }]}
+        >
           <TouchableOpacity
             onPress={() => {
-              bottomSheetRef.current?.close();
+              bottomSheetRef.current?.snapToIndex(0);
               router.push('/(stack)/motivecreate');
             }}
           >

@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default function FriendsBottomSheet({ bottomSheetRef, friends, onFriendPress, onChange }: Props) {
-  const snapPoints = useMemo(() => ['25%', '60%', '90%'], []);
+  const snapPoints = useMemo(() => ['10%', '60%', '90%'], []);
 
   const handleSheetChanges = useCallback((index: number) => {
     onChange?.(index);
@@ -37,10 +37,9 @@ export default function FriendsBottomSheet({ bottomSheetRef, friends, onFriendPr
       snapPoints={snapPoints}
       onChange={handleSheetChanges}
       backdropComponent={renderBackdrop}
-      enablePanDownToClose
       handleIndicatorStyle={styles.handle}
       backgroundStyle={styles.background}
-      bottomInset={70}
+      bottomInset={0}
       style={styles.sheet}
     >
       <BottomSheetView style={styles.container}>
@@ -52,7 +51,7 @@ export default function FriendsBottomSheet({ bottomSheetRef, friends, onFriendPr
             <Friend
               friend={item}
               onPress={() => onFriendPress(item)}
-              onInvite={() => bottomSheetRef.current?.close()}
+              onInvite={() => bottomSheetRef.current?.snapToIndex(0)}
             />
           )}
           showsVerticalScrollIndicator={false}
