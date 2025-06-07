@@ -1,53 +1,67 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, SafeAreaView } from 'react-native';
-import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-// import * as ImagePicker from 'expo-image-picker';
-import { colors, spacing, fontSizes } from '../theme';
-import GradientButton from '../components/GradientButton';
-import IconButton from '../components/IconButton';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  SafeAreaView,
+} from "react-native";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { colors, spacing, fontSizes } from "../theme";
+import GradientButton from "../components/GradientButton";
+import IconButton from "../components/IconButton";
 
 export default function ProfilePicture() {
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [image, setImage] = useState<string | null>(null);
 
   const pickImage = async () => {
-    // const result = await ImagePicker.launchImageLibraryAsync({
-    //   mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    //   allowsEditing: true,
-    //   aspect: [1, 1],
-    //   quality: 1,
-    // });
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images", "videos"],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
 
-    // if (!result.canceled) {
-    //   setImageUri(result.assets[0].uri);
-    // }
-    
-    // For demo, use placeholder
-    setImageUri('https://picsum.photos/200');
+    console.log(result);
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+
+    console.log(!result.canceled);
   };
 
   const takePhoto = async () => {
-    // const result = await ImagePicker.launchCameraAsync({
-    //   allowsEditing: true,
-    //   aspect: [1, 1],
-    //   quality: 1,
-    // });
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== "granted") {
+      alert("Camera permission is required to take a photo.");
+      return;
+    }
 
-    // if (!result.canceled) {
-    //   setImageUri(result.assets[0].uri);
-    // }
-    
-    // For demo, use placeholder
-    setImageUri('https://picsum.photos/200');
+    // 2. Launch the camera
+    let result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1], // square crop
+      quality: 1,
+    });
+
+    // 3. If the user took a photo, save its URI
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
   };
 
   const handleContinue = () => {
     // Save profile picture
-    router.push('./contacts-permission');
+    router.push("./contacts-permission");
   };
 
   const handleSkip = () => {
-    router.push('./contacts-permission');
+    router.push("./contacts-permission");
   };
 
   return (
@@ -55,21 +69,24 @@ export default function ProfilePicture() {
       <IconButton
         iosName="chevron.backward"
         androidName="arrow-back"
-        containerStyle={{ position: 'absolute', top: spacing.xl+25, left: spacing.xl, zIndex: 10 }}
+        containerStyle={{
+          position: "absolute",
+          top: spacing.xl + 25,
+          left: spacing.xl,
+          zIndex: 10,
+        }}
         onPress={() => router.back()}
       />
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.title}>Add a profile picture</Text>
-          <Text style={styles.subtitle}>
-            Help your friends recognize you
-          </Text>
+          <Text style={styles.subtitle}>Help your friends recognize you</Text>
         </View>
 
         <View style={styles.photoSection}>
           <TouchableOpacity style={styles.photoContainer} onPress={pickImage}>
-            {imageUri ? (
-              <Image source={{ uri: imageUri }} style={styles.photo} />
+            {image ? (
+              <Image source={{ uri: image }} style={styles.photo} />
             ) : (
               <View style={styles.photoPlaceholder}>
                 <Ionicons name="person" size={60} color={colors.text[3]} />
@@ -85,7 +102,7 @@ export default function ProfilePicture() {
               <Ionicons name="images" size={24} color={colors.acc.p1} />
               <Text style={styles.optionText}>Choose from library</Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity style={styles.optionButton} onPress={takePhoto}>
               <Ionicons name="camera" size={24} color={colors.acc.p1} />
               <Text style={styles.optionText}>Take a photo</Text>
@@ -94,10 +111,7 @@ export default function ProfilePicture() {
         </View>
 
         <View style={styles.buttons}>
-          <GradientButton 
-            style={styles.button}
-            onPress={handleContinue}
-          >
+          <GradientButton style={styles.button} onPress={handleContinue}>
             <Text style={styles.buttonText}>Continue</Text>
           </GradientButton>
 
@@ -118,14 +132,14 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: spacing.xl,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   header: {
     marginTop: spacing.xl * 2,
   },
   title: {
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: colors.text[1],
     marginBottom: spacing.sm,
   },
@@ -135,7 +149,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   photoSection: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   photoContainer: {
     width: 150,
@@ -153,19 +167,19 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 75,
     backgroundColor: colors.bg[2],
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   editButton: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     right: 0,
     backgroundColor: colors.acc.p1,
     width: 40,
     height: 40,
     borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 3,
     borderColor: colors.bg[1],
   },
@@ -173,8 +187,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   optionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: spacing.sm,
     padding: spacing.md,
   },
@@ -191,14 +205,14 @@ const styles = StyleSheet.create({
   buttonText: {
     color: colors.buttonText,
     fontSize: fontSizes.medium,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   skipButton: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: spacing.md,
   },
   skipButtonText: {
     color: colors.text[2],
     fontSize: fontSizes.medium,
   },
-}); 
+});

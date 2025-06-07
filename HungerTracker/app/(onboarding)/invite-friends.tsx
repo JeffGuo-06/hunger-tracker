@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xl,
+    paddingTop: spacing.xl+25,
     paddingBottom: spacing.md,
   },
   title: {

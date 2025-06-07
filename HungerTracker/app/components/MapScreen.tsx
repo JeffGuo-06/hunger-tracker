@@ -8,8 +8,18 @@ type LocationCoords = {
   longitude: number;
 } | null;
 
+export type MapUser = {
+  id: string;
+  name: string;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
+  avatar: string;
+};
+
 // Example user data - in a real app, this would come from your backend
-const EXAMPLE_USERS = [
+export const EXAMPLE_USERS: MapUser[] = [
   {
     id: "1",
     name: "Laughter",
@@ -17,7 +27,7 @@ const EXAMPLE_USERS = [
       latitude: 43.4643,
       longitude: -80.5204,
     },
-    avatar: "https://i.pravatar.cc/150?img=1",
+    avatar: "https://i.pravatar.cc/150?img",
   },
   {
     id: "2",
@@ -26,7 +36,7 @@ const EXAMPLE_USERS = [
       latitude: 43.4675,
       longitude: -79.6877,
     },
-    avatar: "https://i.pravatar.cc/150?img=5",
+    avatar: "https://i.pravatar.cc/150?img",
   },
   {
     id: "3",
@@ -35,7 +45,7 @@ const EXAMPLE_USERS = [
       latitude: 43.46843,
       longitude: -79.74241,
     },
-    avatar: "https://i.pravatar.cc/150?img=3",
+    avatar: "https://i.pravatar.cc/150?img",
   },
 ];
 
@@ -46,7 +56,7 @@ const DEFAULT_REGION: Region = {
   longitudeDelta: 0.0421,
 };
 
-export default function MapScreen() {
+export default function MapScreen({ mapRef }: { mapRef: React.RefObject<MapView> }) {
   const [location, setLocation] = useState<LocationCoords>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -104,6 +114,7 @@ export default function MapScreen() {
   return (
     <View style={styles.container}>
       <MapView
+        ref={mapRef}
         style={styles.map}
         region={region}
         onRegionChangeComplete={setRegion}
