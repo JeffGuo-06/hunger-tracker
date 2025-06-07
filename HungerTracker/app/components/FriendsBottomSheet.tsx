@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default function FriendsBottomSheet({ bottomSheetRef, friends, onFriendPress, onChange }: Props) {
-  const snapPoints = useMemo(() => ['10%', '60%', '90%'], []);
+  const snapPoints = useMemo(() => ['10%', '60%', '80%'], []);
 
   const handleSheetChanges = useCallback((index: number) => {
     onChange?.(index);
@@ -53,10 +53,10 @@ export default function FriendsBottomSheet({ bottomSheetRef, friends, onFriendPr
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.bg[1],
+    backgroundColor: colors.bg[2],
   },
   background: {
-    backgroundColor: colors.bg[1],
+    backgroundColor: colors.bg[2],
   },
   sheet: {
     zIndex: 1002,

@@ -27,7 +27,7 @@ export const EXAMPLE_USERS: MapUser[] = [
       latitude: 43.4643,
       longitude: -80.5204,
     },
-    avatar: "https://i.pravatar.cc/150?img=1",
+    avatar: "https://i.pravatar.cc/150?img",
   },
   {
     id: "2",
@@ -36,7 +36,7 @@ export const EXAMPLE_USERS: MapUser[] = [
       latitude: 43.4675,
       longitude: -79.6877,
     },
-    avatar: "https://i.pravatar.cc/150?img=5",
+    avatar: "https://i.pravatar.cc/150?img",
   },
   {
     id: "3",
@@ -45,7 +45,7 @@ export const EXAMPLE_USERS: MapUser[] = [
       latitude: 43.46843,
       longitude: -79.74241,
     },
-    avatar: "https://i.pravatar.cc/150?img=3",
+    avatar: "https://i.pravatar.cc/150?img",
   },
 ];
 
