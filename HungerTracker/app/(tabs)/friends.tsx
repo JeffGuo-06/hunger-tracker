@@ -9,12 +9,15 @@ export default function Friends() {
   const [search, setSearch] = useState("");
 
   return (
-    
     <SafeAreaView style={styles.container} edges={["top"]}>
-      
-      <Text style={styles.text}>Friends</Text>
+      <Text style={styles.title}>Friends</Text>
       <View style={styles.searchBar}>
-        <Ionicons name="search" size={20} color={colors.text[2]} style={styles.searchIcon} />
+        <Ionicons
+          name="search"
+          size={20}
+          color={colors.text[2]}
+          style={styles.searchIcon}
+        />
         <TextInput
           style={styles.searchInput}
           placeholder="Search for friends..."
@@ -24,9 +27,8 @@ export default function Friends() {
         />
       </View>
       <ScrollView>
-      <AddContacts /> 
+        <AddContacts />
       </ScrollView>
-      
     </SafeAreaView>
   );
 }
@@ -37,7 +39,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg[2],
   },
   header: {
-    width: '100%',
+    width: "100%",
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
@@ -45,26 +47,26 @@ const styles = StyleSheet.create({
     color: colors.text[1],
     fontSize: 20,
     fontWeight: "bold",
-    textAlign: 'center',
+    textAlign: "center",
   },
   subtitle: {
     color: colors.text[2],
     fontSize: 16,
     fontWeight: "normal",
-    textAlign: 'left',
+    textAlign: "left",
     marginTop: 4,
   },
   searchBar: {
-    width: '90%',
+    width: "90%",
     height: 40,
-    flexDirection: 'row',      
-    alignItems: 'center',     
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.bg[1],
     borderRadius: 12,
-    paddingHorizontal: 12,    
+    paddingHorizontal: 12,
     marginTop: 24,
     marginBottom: 16,
-    alignSelf: 'center',
+    alignSelf: "center",
   },
 
   searchIcon: {
@@ -72,7 +74,7 @@ const styles = StyleSheet.create({
   },
 
   searchInput: {
-    flex: 1,                   
+    flex: 1,
     color: colors.text[1],
     fontSize: 16,
   },

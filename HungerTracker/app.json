@@ -44,6 +44,7 @@
         }
       ],
       "expo-font",
+      "react-native-vision-camera",
       [
         "expo-contacts",
         {
