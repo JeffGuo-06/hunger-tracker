@@ -27,10 +27,10 @@ export default function Camera() {
   const [isFrozen, setIsFrozen] = useState(false);
   const [toggleCooldown, setToggleCooldown] = useState(false);
   const [photo, setPhoto] = useState<string | null>(null);
-  const [zoom, setZoom] = useState(1);
-  const [displayZoom, setDisplayZoom] = useState(0.5);
+  const [zoom, setZoom] = useState(2);
+  const [displayZoom, setDisplayZoom] = useState(1);
   const [isUltraWide, setIsUltraWide] = useState(false);
-  const baseZoom = useSharedValue(1);
+  const baseZoom = useSharedValue(2);
   const cameraRef = useRef<VisionCamera>(null);
   const router = useRouter();
 
@@ -60,10 +60,16 @@ export default function Camera() {
 
   // Reset zoom when camera changes
   useEffect(() => {
-    setZoom(1);
-    baseZoom.value = 1;
+    if (cameraFacing === "back") {
+      setZoom(2);
+      baseZoom.value = 2;
+      setDisplayZoom(1);
+    } else {
+      setZoom(1);
+      baseZoom.value = 1;
+      setDisplayZoom(0.5);
+    }
     setIsUltraWide(false);
-    updateDisplayZoom();
   }, [cameraFacing]);
 
   const pinchGesture = Gesture.Pinch()
