@@ -45,29 +45,17 @@ export default function Camera() {
   const maxZoom = 6;
 
   function updateDisplayZoom() {
-    // if (isUltraWide) {
-    //   if (zoom <= 0.5) {
-    //     setDisplayZoom(0.5);
-    //   } else if (zoom >= 1) {
-    //     setDisplayZoom(1);
-    //   } else {
-    //     // Linear interpolation between (0.5, 0.5) and (1, 1)
-    //     setDisplayZoom(0.5 + (zoom - 0.5));
-    //   }
-    // } else 
-    // {
-      if (zoom <= 1) {
-        setDisplayZoom(0.5);
-      } else if (zoom >= 6) { 
-        setDisplayZoom(5);
-      } else if (zoom <= 2) {
-        // Linear interpolation between (1, 0.5) and (2, 1)
-        setDisplayZoom(0.5 + (zoom - 1) * 0.5);
-      } else {
-        // Linear interpolation between (2, 1) and (6, 5)
-        setDisplayZoom(1 + (zoom - 2));
-      }
-    // }
+    if (zoom <= 1) {
+      setDisplayZoom(0.5);
+    } else if (zoom >= 6) {
+      setDisplayZoom(5);
+    } else if (zoom <= 2) {
+      // Linear interpolation between (1, 0.5) and (2, 1)
+      setDisplayZoom(0.5 + (zoom - 1) * 0.5);
+    } else {
+      // Linear interpolation between (2, 1) and (6, 5)
+      setDisplayZoom(1 + (zoom - 2));
+    }
     console.log('Display Zoom:', displayZoom);
   }
 
@@ -186,7 +174,7 @@ export default function Camera() {
     console.log('Display Zoom:', displayZoom);
   }
 
-  function zoomIn() {
+  function zoomIn() { 
     if (zoom >= 1 && !isUltraWide) {
       setIsUltraWide(true);
       setZoom(0.5);
@@ -214,7 +202,7 @@ export default function Camera() {
     if (!cameraDevice) return;
     
     if (isUltraWide) {
-      setZoom(1);
+      setZoom(1.049);
       setIsUltraWide(false);
       updateDisplayZoom();
     } else {
@@ -228,11 +216,12 @@ export default function Camera() {
     if (isUltraWide) {
       setZoom(2);
       setIsUltraWide(false);
+      setDisplayZoom(1);
     } else {
       setZoom(1);
       setIsUltraWide(true);
+      setDisplayZoom(0.5);
     }
-    updateDisplayZoom();
   }
 
   return (
