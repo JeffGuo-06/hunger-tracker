@@ -23,7 +23,6 @@ export default function CommentsBottomSheet({ bottomSheetRef, comments }: Props)
 
   // Callbacks
   const handleSheetChanges = useCallback((index: number) => {
-    console.log('handleSheetChanges', index);
   }, []);
 
   const renderBackdrop = useCallback(

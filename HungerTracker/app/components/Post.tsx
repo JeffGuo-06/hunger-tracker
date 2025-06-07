@@ -178,12 +178,8 @@ export default function Post({ post, onCommentsPress }: PostProps) {
   }));
 
   const handlePresentPress = useCallback(() => {
-    console.log("Attempting to present bottom sheet");
     if (bottomSheetRef.current) {
       bottomSheetRef.current.present();
-      console.log("Bottom sheet presented");
-    } else {
-      console.log("Bottom sheet ref is null");
     }
   }, []);
 
