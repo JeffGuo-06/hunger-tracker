@@ -55,3 +55,5 @@ web-build/
 debug.log
 
 task-definition.json
+task-definition-web.json
+task-definition-celery.json

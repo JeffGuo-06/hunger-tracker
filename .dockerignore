@@ -1,3 +1,7 @@
+# Exclude HungerTracker directory
+HungerTracker/
+**/HungerTracker/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -64,9 +68,21 @@ venv.bak/
 .DS_Store
 
 # AWS
-*.pem
+#*.pem
 
 # Node
 node_modules/
 package-lock.json 
 **/node_modules/
+
+*.log
+*.md
+*.json
+*.png
+*.jpg
+*.ttf
+*.js
+*.ts
+*.tsx
+*.css
+*.git

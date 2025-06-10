@@ -54,6 +54,7 @@ def health_check(request):
         logger.info(f"Request headers: {request.headers}")
         
         # Check database connection
+        logger.info("Attempting database connection...")
         db_conn = connections['default']
         cursor = db_conn.cursor()
         cursor.execute('SELECT 1')
@@ -78,6 +79,7 @@ def health_check(request):
             }, status=503)
     except OperationalError as e:
         logger.error(f"Health check failed - Database connection error: {str(e)}")
+        logger.error(f"Database settings: {settings.DATABASES['default']}")
         return JsonResponse({
             'status': 'unhealthy',
             'database': 'disconnected',
@@ -86,6 +88,8 @@ def health_check(request):
         }, status=503)
     except Exception as e:
         logger.error(f"Health check failed - Unexpected error: {str(e)}")
+        logger.error(f"Error type: {type(e)}")
+        logger.error(f"Error details: {e.__dict__ if hasattr(e, '__dict__') else 'No details available'}")
         return JsonResponse({
             'status': 'unhealthy',
             'error': str(e),

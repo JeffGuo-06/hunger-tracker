@@ -15,11 +15,15 @@ ALLOWED_HOSTS = ['*']
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME'),
-        'USER': os.environ.get('DB_USER'),
-        'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST'),
-        'PORT': os.environ.get('DB_PORT'),
+        'NAME': 'muckd-db',
+        'USER': 'postgres',
+        'PASSWORD': 'Hudson1967!$',
+        'HOST': 'muckd-db.cd0iyg2q8wyj.us-east-2.rds.amazonaws.com',
+        'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'verify-full',
+            'sslrootcert': '/app/rds-combined-ca-bundle.pem'
+        }
     }
 }
 
@@ -84,8 +88,36 @@ LOGGING = {
 }
 
 # CORS settings - temporarily allow all origins
-CORS_ALLOW_ALL_ORIGINS = True  # Will be False when domain is configured
+CORS_ALLOW_ALL_ORIGINS = False  # Changed to False for security
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://muckd-alb-756249639.us-east-2.elb.amazonaws.com',
+    'https://muckd-alb-756249639.us-east-2.elb.amazonaws.com',
+    'exp://localhost:19000',  # Expo development server
+    'exp://192.168.1.*:19000',  # Local network Expo
+    'exp://*.tunnel.exp.dev',  # Expo tunnel
+]
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 # Cache settings
 CACHES = {

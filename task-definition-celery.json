@@ -4,14 +4,14 @@
     "requiresCompatibilities": ["FARGATE"],
     "cpu": "512",
     "memory": "1024",
-    "executionRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/ecsTaskExecutionRole",
-    "taskRoleArn": "arn:aws:iam::${AWS_ACCOUNT_ID}:role/ecsTaskRole",
+    "executionRoleArn": "arn:aws:iam::656362079087:role/ecsTaskExecutionRole",
+    "taskRoleArn": "arn:aws:iam::656362079087:role/ecsTaskRole",
     "containerDefinitions": [
         {
             "name": "muckd-celery",
-            "image": "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/muckd:latest-amd64",
+            "image": "656362079087.dkr.ecr.us-east-2.amazonaws.com/muckd:latest-amd64",
             "essential": true,
-            "command": ["celery", "-A", "muckd", "worker", "--loglevel=info"],
+            "command": ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"],
             "environment": [
                 {
                     "name": "DJANGO_SETTINGS_MODULE",
@@ -19,7 +19,7 @@
                 },
                 {
                     "name": "AWS_STORAGE_BUCKET_NAME",
-                    "value": "mucked-media"
+                    "value": "muckd-media"
                 },
                 { "name": "SECRET_KEY", "value": "django-insecure-+7#mvf$@#g=zi^v(2n0+z6!4mz-xuscxise1m=nw24-&6q+p@^" },
                 { "name": "DB_NAME", "value": "muckd-db" },
@@ -27,17 +27,40 @@
                 { "name": "DB_PASSWORD", "value": "Hudson1967!$" },
                 { "name": "DB_HOST", "value": "muckd-db.cd0iyg2q8wyj.us-east-2.rds.amazonaws.com" },
                 { "name": "DB_PORT", "value": "5432" },
-                { "name": "REDIS_URL", "value": "muckd-redis.4ikzba.0001.use2.cache.amazonaws.com" },
+                { "name": "REDIS_URL", "value": "redis://muckd-redis.4ikzba.0001.use2.cache.amazonaws.com:6379/0" },
                 { "name": "AWS_ACCESS_KEY_ID", "value": "AKIAZRUR2QNX54ETVJUT" },
-                { "name": "AWS_SECRET_ACCESS_KEY", "value": "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" }
+                { "name": "AWS_SECRET_ACCESS_KEY", "value": "h12vt4FjLrGHeR4gfzyts/pSax/+B+fvVYTZyTmA" },
+                { "name": "PYTHONUNBUFFERED", "value": "1" }
             ],
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
                     "awslogs-group": "/ecs/muckd-celery",
-                    "awslogs-region": "${AWS_REGION}",
+                    "awslogs-region": "us-east-2",
                     "awslogs-stream-prefix": "ecs"
                 }
+            },
+            "mountPoints": [
+                {
+                    "sourceVolume": "app-storage",
+                    "containerPath": "/app/staticfiles",
+                    "readOnly": false
+                },
+                {
+                    "sourceVolume": "app-storage",
+                    "containerPath": "/app/media",
+                    "readOnly": false
+                }
+            ]
+        }
+    ],
+    "volumes": [
+        {
+            "name": "app-storage",
+            "efsVolumeConfiguration": {
+                "fileSystemId": "fs-01df83f135f4aef25",
+                "rootDirectory": "/",
+                "transitEncryption": "ENABLED"
             }
         }
     ]

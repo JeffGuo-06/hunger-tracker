@@ -1,14 +1,14 @@
-import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router } from 'expo-router';
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
 
 // Use your computer's local IP address instead of localhost
-const API_URL = 'http://muckd-alb-756249639.us-east-2.elb.amazonaws.com';
+const API_URL = "http://3.23.92.170/";
 
 const api = axios.create({
   baseURL: API_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   timeout: 10000, // 10 second timeout
 });
@@ -16,7 +16,7 @@ const api = axios.create({
 // Add request interceptor for logging
 api.interceptors.request.use(
   (config) => {
-    console.log('API Request:', {
+    console.log("API Request:", {
       method: config.method,
       url: config.url,
       data: config.data,
@@ -25,7 +25,7 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error('API Request Error:', error);
+    console.error("API Request Error:", error);
     return Promise.reject(error);
   }
 );
@@ -33,14 +33,14 @@ api.interceptors.request.use(
 // Add response interceptor for logging and handling auth errors
 api.interceptors.response.use(
   (response) => {
-    console.log('API Response:', {
+    console.log("API Response:", {
       status: response.status,
       data: response.data,
     });
     return response;
   },
   async (error) => {
-    console.error('API Response Error:', {
+    console.error("API Response Error:", {
       status: error.response?.status,
       data: error.response?.data,
       message: error.message,
@@ -48,42 +48,47 @@ api.interceptors.response.use(
 
     // Handle network errors
     if (!error.response) {
-      console.error('Network Error:', error.message);
-      if (error.message.includes('Network Error')) {
-        throw new Error('Unable to connect to the server. Please check your internet connection and try again.');
-      } else if (error.message.includes('timeout')) {
-        throw new Error('Request timed out. Please try again.');
+      console.error("Network Error:", error.message);
+      if (error.message.includes("Network Error")) {
+        throw new Error(
+          "Unable to connect to the server. Please check your internet connection and try again."
+        );
+      } else if (error.message.includes("timeout")) {
+        throw new Error("Request timed out. Please try again.");
       }
-      throw new Error('Network error. Please check your internet connection.');
+      throw new Error("Network error. Please check your internet connection.");
     }
 
     // Handle unauthorized errors (401)
     if (error.response?.status === 401) {
       // Clear auth tokens
-      await AsyncStorage.removeItem('token');
-      await AsyncStorage.removeItem('refreshToken');
-      
+      await AsyncStorage.removeItem("token");
+      await AsyncStorage.removeItem("refreshToken");
+
       // Redirect to login page
-      router.replace('/(auth)/login');
-      throw new Error('Session expired. Please login again.');
+      router.replace("/(auth)/login");
+      throw new Error("Session expired. Please login again.");
     }
 
     // Handle server errors (500)
     if (error.response?.status >= 500) {
-      throw new Error('Server error. Please try again later.');
+      throw new Error("Server error. Please try again later.");
     }
 
     // Handle other errors
-    throw new Error(error.response?.data?.message || 'An error occurred. Please try again.');
+    throw new Error(
+      error.response?.data?.message || "An error occurred. Please try again."
+    );
   }
 );
 
 // Add a request interceptor to add the auth token to requests
 api.interceptors.request.use(
   async (config) => {
-    const token = await AsyncStorage.getItem('token');
+    const token = await AsyncStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log("Set Authorization header:", config.headers.Authorization);
     }
     return config;
   },
@@ -95,78 +100,79 @@ api.interceptors.request.use(
 // Format phone number to E.164 format
 const formatPhoneNumber = (phoneNumber: string) => {
   // Remove all non-digit characters
-  const cleaned = phoneNumber.replace(/\D/g, '');
+  const cleaned = phoneNumber.replace(/\D/g, "");
   // Add +1 prefix if it's a US number without country code
   if (cleaned.length === 10) {
     return `+1${cleaned}`;
   }
   // Add + if it's missing
-  return cleaned.startsWith('+') ? cleaned : `+${cleaned}`;
+  return cleaned.startsWith("+") ? cleaned : `+${cleaned}`;
 };
 
 // Auth endpoints
 export const auth = {
   login: async (email: string, password: string) => {
-    const response = await api.post('/api/token/', { email, password });
+    // The backend expects 'email' and 'password'
+    const response = await api.post("/api/token/", { email, password });
     const { access, refresh } = response.data;
-    await AsyncStorage.setItem('token', access);
-    await AsyncStorage.setItem('refreshToken', refresh);
+    await AsyncStorage.setItem("token", access);
+    await AsyncStorage.setItem("refreshToken", refresh);
     return response.data;
   },
-  register: async (userData: { 
-    email: string; 
-    password1: string; 
-    password2: string; 
+  register: async (userData: {
+    email: string;
+    password1: string;
+    password2: string;
     phone_number: string;
     first_name: string;
     last_name: string;
     username: string;
   }) => {
-    const response = await api.post('/auth/registration/', {
+    const response = await api.post("/auth/registration/", {
       ...userData,
       phone_number: formatPhoneNumber(userData.phone_number),
     });
-    
+
     // After successful registration, get the auth tokens
-    const authResponse = await api.post('/api/token/', {
+    const authResponse = await api.post("/api/token/", {
       username: userData.username,
       password: userData.password1,
     });
-    
+
     const { access, refresh } = authResponse.data;
-    await AsyncStorage.setItem('token', access);
-    await AsyncStorage.setItem('refreshToken', refresh);
-    
+    await AsyncStorage.setItem("token", access);
+    await AsyncStorage.setItem("refreshToken", refresh);
+
     // After successful registration, create a profile in the database
-    await api.post('/profiles/', {
+    await api.post("/profiles/", {
       email: userData.email,
       phone_number: formatPhoneNumber(userData.phone_number),
     });
-    
+
     return authResponse.data;
   },
   requestPhoneVerification: async (phoneNumber: string) => {
-    console.log('Requesting phone verification for:', phoneNumber);
+    console.log("Requesting phone verification for:", phoneNumber);
     const formattedNumber = formatPhoneNumber(phoneNumber);
-    console.log('Formatted phone number:', formattedNumber);
-    const response = await api.post('/auth/phone/request-verification/', {
+    console.log("Formatted phone number:", formattedNumber);
+    const response = await api.post("/auth/phone/request-verification/", {
       phone_number: formattedNumber,
     });
-    console.log('Phone verification request response:', response.data);
+    console.log("Phone verification request response:", response.data);
     return response.data;
   },
   verifyPhone: async (phoneNumber: string, code: string) => {
-    console.log('Verifying phone with code:', { phoneNumber, code });
+    console.log("Verifying phone with code:", { phoneNumber, code });
     const formattedNumber = formatPhoneNumber(phoneNumber);
-    const response = await api.post('/auth/phone/verify/', {
+    const response = await api.post("/auth/phone/verify/", {
       phone_number: formattedNumber,
       code,
     });
-    console.log('Phone verification response:', response.data);
+    console.log("Phone verification response:", response.data);
     return response.data;
   },
   getProfile: async () => {
-    const response = await api.get('/api/profiles/me/');
+    const response = await api.get("/api/profiles/me/");
     return response.data;
   },
   getProfileById: async (userId: number | string) => {
@@ -174,50 +180,58 @@ export const auth = {
     return response.data;
   },
   logout: async () => {
-    await AsyncStorage.removeItem('token');
-    await AsyncStorage.removeItem('refreshToken');
+    await AsyncStorage.removeItem("token");
+    await AsyncStorage.removeItem("refreshToken");
   },
   // Friend-related endpoints
-  getFriends: () => api.get('/api/friendships/'),
-  getFriendsOfUser: (userId: number | string) => api.get(`/api/friendships/user/${userId}/`),
-  sendFriendRequest: (username: string) => api.post('/api/friendships/send/', { username }),
-  acceptFriendRequest: (friendshipId: number) => api.post(`/api/friendships/${friendshipId}/accept/`),
-  rejectFriendRequest: (friendshipId: number) => api.post(`/api/friendships/${friendshipId}/reject/`),
-  removeFriend: (friendshipId: number) => api.delete(`/api/friendships/${friendshipId}/`),
+  getFriends: () => api.get("/api/friendships/"),
+  getFriendsOfUser: (userId: number | string) =>
+    api.get(`/api/friendships/user/${userId}/`),
+  sendFriendRequest: (username: string) =>
+    api.post("/api/friendships/send/", { username }),
+  acceptFriendRequest: (friendshipId: number) =>
+    api.post(`/api/friendships/${friendshipId}/accept/`),
+  rejectFriendRequest: (friendshipId: number) =>
+    api.post(`/api/friendships/${friendshipId}/reject/`),
+  removeFriend: (friendshipId: number) =>
+    api.delete(`/api/friendships/${friendshipId}/`),
 };
 
 // User endpoints
 export const users = {
   getProfile: async () => {
-    const response = await api.get('/api/profiles/me/');
+    const response = await api.get("/api/profiles/me/");
     return response.data;
   },
   updateProfile: async (data: any) => {
     let response;
     if (data instanceof FormData) {
-      response = await api.patch('/api/profiles/me/', data, {
+      response = await api.patch("/api/profiles/me/", data, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       });
     } else {
-      response = await api.patch('/api/profiles/me/', data);
+      response = await api.patch("/api/profiles/me/", data);
     }
     return response.data;
   },
   updateLocation: async (location: string) => {
-    const response = await api.patch('/api/profiles/me/', { location });
+    const response = await api.patch("/api/profiles/me/", { location });
     return response.data;
   },
-  updateLocationSharing: async (mode: 'invisible' | 'all_friends' | 'select_friends', selectedFriends?: number[]) => {
-    const response = await api.patch('/api/profiles/me/', { 
+  updateLocationSharing: async (
+    mode: "invisible" | "all_friends" | "select_friends",
+    selectedFriends?: number[]
+  ) => {
+    const response = await api.patch("/api/profiles/me/", {
       location_sharing_mode: mode,
-      selected_friends: selectedFriends || []
+      selected_friends: selectedFriends || [],
     });
     return response.data;
   },
   getFriendsLocations: async () => {
-    const response = await api.get('/api/profiles/friends_locations/');
+    const response = await api.get("/api/profiles/friends_locations/");
     return response.data;
   },
 };
@@ -225,13 +239,13 @@ export const users = {
 // Posts endpoints
 export const posts = {
   getAll: async () => {
-    const response = await api.get('/api/posts/');
+    const response = await api.get("/api/posts/");
     return response.data;
   },
   create: async (data: FormData) => {
-    const response = await api.post('/api/posts/', data, {
+    const response = await api.post("/api/posts/", data, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     });
     return response.data;
@@ -245,7 +259,9 @@ export const posts = {
     return response.data;
   },
   addComment: async (postId: string, content: string) => {
-    const response = await api.post(`/api/posts/${postId}/comments/`, { content });
+    const response = await api.post(`/api/posts/${postId}/comments/`, {
+      content,
+    });
     return response.data;
   },
 };
@@ -253,13 +269,13 @@ export const posts = {
 // Messages endpoints
 export const messages = {
   getAll: async () => {
-    const response = await api.get('/api/messages/');
+    const response = await api.get("/api/messages/");
     return response.data;
   },
   send: async (data: any) => {
-    const response = await api.post('/api/messages/', data);
+    const response = await api.post("/api/messages/", data);
     return response.data;
   },
 };
 
-export default api; 
+export default api;
