@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 
 // Use your computer's local IP address instead of localhost
-const API_URL = "http://3.23.92.170/";
+const API_URL = "http://3.15.147.37/";
 
 const api = axios.create({
   baseURL: API_URL,
