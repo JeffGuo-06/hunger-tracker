@@ -1,42 +1,18 @@
-import React, { useRef, useState } from "react";
+import React, {useState } from "react";
 import { View, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import MapScreen, { EXAMPLE_USERS, MapUser } from "../components/MapScreen";
+import MapScreen from "../components/MapScreen";
 import { colors, spacing } from "../theme";
-import { Link, router } from "expo-router";
+import { Link } from "expo-router";
 import MotiveInvitation from "../components/MotiveInvitation";
 import { LinearGradient } from "expo-linear-gradient";
-import BottomSheet, { BottomSheetMethods } from "@gorhom/bottom-sheet";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import FriendsBottomSheet from "../components/FriendsBottomSheet";
-import type MapView from "react-native-maps";
-
 export default function Index() {
   const [showInvite, setShowInvite] = useState(false);
-  const [showMotiveButton, setShowMotiveButton] = useState(true);
-  const mapRef = useRef<MapView>(null);
-  const bottomSheetRef = useRef<BottomSheetMethods>(null);
-  const tabBarHeight = useBottomTabBarHeight();
-
-  const handleFriendPress = (friend: MapUser) => {
-    bottomSheetRef.current?.snapToIndex(0);
-    mapRef.current?.animateToRegion(
-      {
-        ...friend.location,
-        latitudeDelta: 0.05,
-        longitudeDelta: 0.05,
-      },
-      500
-    );
-  };
-
-  const handleSheetChange = (index: number) => {
-    setShowMotiveButton(index < 1);
-  };
 
   return (
     <View style={styles.container}>
-      <MapScreen mapRef={mapRef} />
+      <MapScreen />
       {/* Notification Button */}
       <TouchableOpacity
         style={styles.notificationButton}
@@ -54,21 +30,15 @@ export default function Index() {
         </TouchableOpacity>
       </Link>
       {/* Motive Create Button */}
-      {showMotiveButton && (
-        <LinearGradient
-          colors={colors.grad.p1}
-          style={[styles.motiveButton, { bottom: tabBarHeight + spacing.xl }]}
-        >
-          <TouchableOpacity
-            onPress={() => {
-              bottomSheetRef.current?.snapToIndex(0);
-              router.push('/(stack)/motivecreate');
-            }}
-          >
+
+      <LinearGradient colors={colors.grad.p1} style={styles.motiveButton}>
+        <Link href="/(stack)/motivecreate" asChild>
+          <TouchableOpacity>
+            {/* style={styles.motiveButton}> */}
             <Ionicons name="add" size={24} color={colors.text[1]} />
           </TouchableOpacity>
-        </LinearGradient>
-      )}
+        </Link>
+      </LinearGradient>
 
       {/* Motive Invitation Overlay */}
       {showInvite && (
@@ -82,13 +52,7 @@ export default function Index() {
           </TouchableOpacity>
         </TouchableOpacity>
       )}
-
-      <FriendsBottomSheet
-        bottomSheetRef={bottomSheetRef}
-        friends={EXAMPLE_USERS.map((u) => ({ ...u, subtitle: 'last mucked 2hrs ago - 3.7km' }))}
-        onFriendPress={handleFriendPress}
-        onChange={handleSheetChange}
-      />
+      <FriendsBottomSheet bottomSheetRef={bottomSheetRef} friends={friends} onFriendPress={onFriendPress} />
     </View>
   );
 }
@@ -98,6 +62,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg[1],
   },
+
   notificationButton: {
     position: "absolute",
     top: spacing.xl + 30,
@@ -129,7 +94,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    zIndex: 999,
+    zIndex: 1001,
   },
   profileButton: {
     position: "absolute",
