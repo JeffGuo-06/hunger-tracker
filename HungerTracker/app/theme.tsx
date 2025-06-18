@@ -5,17 +5,21 @@ export const colors = {
     3: "#707070"
   },
   acc: {
-    p1: "#FF8D4D",      // Color Primary1
+    p1: "#D732A8",      // Color Primary1
     p2: "#A78BFA",      // Color Primary2
     s1: "#D732A8",    // Color Secondary1
   },
   bg: {
-    1: "#0F0F0F",    // Background 1
-    2: "#2B2B2B",    // Background 2
-    3: "#AFAFAF",    // Background 3
-    4: "#FFFFFF",    // Background 4
+    1: "rgb(10, 10, 10)",    // Background 1
+    2: "rgb(41, 41, 41)",    // Background 2
+    3: "rgb(143, 143, 143)",    // Background 3
+    4: "rgb(255, 255, 255)",    // Background 4
   },
-  border: "#2B2B2B",  // Border color
+  grad: {
+    p1: ['#D732A8', '#FF8D4D'] as const,   //   ⬅︎  two-colour array
+  },
+  border: "#3A3A3A",  // Border color
+  buttonText: "#0F0F0F",
 };
 
 export const spacing = {

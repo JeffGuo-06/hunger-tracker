@@ -4,12 +4,16 @@ import {
   Text,
   StyleSheet,
   Dimensions,
-  FlatList,
   TouchableOpacity,
   Image,
-  Animated,
 } from 'react-native';
 import { colors } from '../theme';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  interpolate,
+  useAnimatedScrollHandler,
+} from 'react-native-reanimated';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -36,8 +40,8 @@ const slides = [
 
 export default function HeroCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const scrollX = useRef(new Animated.Value(0)).current;
-  const slidesRef = useRef<FlatList>(null);
+  const scrollX = useSharedValue(0);
+  const slidesRef = useRef<Animated.FlatList>(null);
 
   const viewableItemsChanged = useRef(({ viewableItems }: any) => {
     if (viewableItems[0]) {
@@ -53,6 +57,12 @@ export default function HeroCarousel() {
     }
   };
 
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollX.value = event.contentOffset.x;
+    },
+  });
+
   const renderItem = ({ item }: { item: typeof slides[0] }) => {
     return (
       <View style={styles.slide}>
@@ -63,48 +73,50 @@ export default function HeroCarousel() {
     );
   };
 
+  const PaginationDot = ({ index }: { index: number }) => {
+    const animatedStyle = useAnimatedStyle(() => {
+      const inputRange = [
+        (index - 1) * SCREEN_WIDTH,
+        index * SCREEN_WIDTH,
+        (index + 1) * SCREEN_WIDTH,
+      ];
+
+      const dotWidth = interpolate(
+        scrollX.value,
+        inputRange,
+        [8, 20, 8],
+        'clamp'
+      );
+
+      const opacity = interpolate(
+        scrollX.value,
+        inputRange,
+        [0.3, 1, 0.3],
+        'clamp'
+      );
+
+      return {
+        width: dotWidth,
+        opacity,
+      };
+    });
+
+    return <Animated.View style={[styles.dot, animatedStyle]} />;
+  };
+
   const Pagination = () => {
     return (
       <View style={styles.paginationContainer}>
-        {slides.map((_, index) => {
-          const inputRange = [
-            (index - 1) * SCREEN_WIDTH,
-            index * SCREEN_WIDTH,
-            (index + 1) * SCREEN_WIDTH,
-          ];
-
-          const dotWidth = scrollX.interpolate({
-            inputRange,
-            outputRange: [8, 20, 8],
-            extrapolate: 'clamp',
-          });
-
-          const opacity = scrollX.interpolate({
-            inputRange,
-            outputRange: [0.3, 1, 0.3],
-            extrapolate: 'clamp',
-          });
-
-          return (
-            <Animated.View
-              key={index}
-              style={[
-                styles.dot,
-                {
-                  width: dotWidth,
-                  opacity,
-                },
-              ]}
-            />
-          );
-        })}
+        {slides.map((_, index) => (
+          <PaginationDot key={index} index={index} />
+        ))}
       </View>
     );
   };
 
   return (
     <View style={styles.container}>
-      <FlatList
+      <Animated.FlatList
         data={slides}
         renderItem={renderItem}
         horizontal
@@ -112,10 +124,8 @@ export default function HeroCarousel() {
         pagingEnabled
         bounces={false}
         keyExtractor={(item) => item.id}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-          { useNativeDriver: false }
-        )}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         onViewableItemsChanged={viewableItemsChanged}
         viewabilityConfig={viewConfig}
         ref={slidesRef}
@@ -169,7 +179,7 @@ const styles = StyleSheet.create({
   dot: {
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.acc.p1,
+   background: colors.grad[1],
     marginHorizontal: 4,
   },
 });

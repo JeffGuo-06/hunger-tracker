@@ -105,7 +105,7 @@ export default function AddContacts() {
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                    <Text style={styles.title}>Add Your Contacts</Text>
+                <Text style={styles.subtitle}>Add Your Contacts</Text>
             </View>
             <FlatList
                 
@@ -114,8 +114,8 @@ export default function AddContacts() {
                 keyExtractor={(item) => item.id || item.name || Math.random().toString()}
                 contentContainerStyle={styles.listContainer}
                 style={styles.list}
+                scrollEnabled={false}
             />
-
         </View>
     );
 }
@@ -131,11 +131,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 12,
     },
-    title: {
+    subtitle: {
         color: colors.text[1],
         fontSize: 20,
-        fontWeight: "bold",
-        textAlign: 'center',
+        fontWeight: "medium",
+        textAlign: 'left',
     },
     list: {
         width: '100%',
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
         marginTop: 2,
     },
     actionButton: {
-        backgroundColor: colors.acc.p1,
+        backgroundColor: colors.text[3],
         paddingHorizontal: 16,
         paddingVertical: 8,
         borderRadius: 20,
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
     permissionButton: {
-        backgroundColor: colors.acc.p1,
+       background: colors.grad[1],
         paddingHorizontal: 24,
         paddingVertical: 12,
         borderRadius: 25,

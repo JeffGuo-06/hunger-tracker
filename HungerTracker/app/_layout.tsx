@@ -4,11 +4,13 @@ import "react-native-gesture-handler";
 import "../global.css";
 import { useFonts } from "expo-font";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { colors } from "./theme";
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { AuthProvider } from './context/AuthContext';
 import { useColorScheme } from 'react-native';
 
 // Set this to true when you want to re-enable authentication
-const REQUIRE_AUTH = false;
+const REQUIRE_AUTH = true;
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -30,26 +32,29 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.bg[1] }}>
       <AuthProvider>
-        <Stack
-          screenOptions={{
-            headerStyle: {
-              backgroundColor: colorScheme === 'dark' ? '#000' : '#fff',
-            },
-            headerTintColor: colorScheme === 'dark' ? '#fff' : '#000',
-          }}
-        >
-          {!REQUIRE_AUTH ? (
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          ) : (
-            <>
-              <Stack.Screen name="index" />
-              <Stack.Screen name="(auth)" />
-              <Stack.Screen name="(tabs)" />
-            </>
-          )}
-        </Stack>
+        <BottomSheetModalProvider>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              headerStyle: {
+                backgroundColor: colorScheme === 'dark' ? '#000' : '#fff',
+              },
+              headerTintColor: colorScheme === 'dark' ? '#fff' : '#000',
+            }}
+          >
+            {!REQUIRE_AUTH ? (
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            ) : (
+              <>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="(onboarding)" />
+                <Stack.Screen name="(tabs)" />
+              </>
+            )}
+          </Stack>
+        </BottomSheetModalProvider>
       </AuthProvider>
     </GestureHandlerRootView>
   );

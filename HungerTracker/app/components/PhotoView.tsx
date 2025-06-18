@@ -1,120 +1,94 @@
-import { Image } from "expo-image";
-import { Alert, View, Text, StyleSheet, TextInput } from "react-native";
-import IconButton from "./IconButton";
-import { shareAsync } from "expo-sharing";
-import { saveToLibraryAsync } from "expo-media-library";
-import CustomButton from "./CustomButton";
+import React from 'react';
+import { View, StyleSheet, TouchableOpacity, Alert, Text} from 'react-native';
+import { Image } from 'expo-image';
+import { SymbolView } from 'expo-symbols';
+import { colors } from '../theme';
+import CustomButton from './CustomButton';
+import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
+
+configureReanimatedLogger({
+  level: ReanimatedLogLevel.warn,
+  strict: false, // Reanimated runs in strict mode by default
+});
+
 import Animated, {
   FadeIn,
   FadeOut,
   LinearTransition,
-} from "react-native-reanimated";
-import { colors } from "../theme";
-import { posts } from "../services/api";
-import { useState } from "react";
+} from 'react-native-reanimated';
+import GradientButton from './GradientButton';
+import { router } from 'expo-router';
 
 interface PhotoViewProps {
   photo: string;
-  setPhoto: React.Dispatch<React.SetStateAction<string>>;
+  onClose: () => void;
 }
 
-export default function PhotoView({ photo, setPhoto }: PhotoViewProps) {
-  const [caption, setCaption] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handlePost = async () => {
-    try {
-      setIsLoading(true);
-      
-      // Create form data for the image upload
-      const formData = new FormData();
-      formData.append('image', {
-        uri: photo,
-        type: 'image/jpeg',
-        name: 'photo.jpg',
-      } as any);
-      formData.append('caption', caption);
-
-      // Send the post request
-      await posts.create(formData);
-      
-      // Clear the photo and caption
-      setPhoto("");
-      setCaption("");
-      
-      Alert.alert("Success", "Your post has been created successfully!");
-    } catch (error) {
-      console.error('Error creating post:', error);
-      Alert.alert("Error", "Failed to create post. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+export default function PhotoView({ photo, onClose }: PhotoViewProps) {
   return (
     <Animated.View
       layout={LinearTransition}
       entering={FadeIn}
       exiting={FadeOut}
+      style={styles.container}
     >
-      <View
-        style={{
-          position: "absolute",
-          zIndex: 1,
-          paddingTop: 50,
-          right: 20,
-        }}
-      >
-        <IconButton
-          onPress={() => setPhoto("")}
-          iosName={"xmark"}
-          androidName="close"
-        />
-      </View>
       <Image
         source={photo}
-        style={{
-          height: "100%",
-          width: "100%",
-          borderRadius: 5,
-        }}
+        style={styles.image}
+        contentFit="cover"
       />
-      <View style={styles.buttonContainer}>
-        <TextInput
-          style={styles.captionInput}
-          placeholder="Write a caption..."
-          placeholderTextColor={colors.text[2]}
-          value={caption}
-          onChangeText={setCaption}
-          multiline
+      <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+        <SymbolView
+          name="xmark.circle.fill"
+          type="hierarchical"
+          tintColor="white"
+          size={40}
         />
-        <CustomButton
-          title="Post"
-          handlePress={handlePost}
-          containerStyles="bg-acc-p1 rounded-xl min-h-[56px]"
-          textStyles="text-white font-psemibold text-lg"
-          isLoading={isLoading}
-        />
-      </View>
+      </TouchableOpacity>
+      
+          <GradientButton 
+            style={styles.button}
+            onPress={() => Alert.alert("Post")}
+          >
+            <Text style={styles.buttonText}>Post</Text>
+          </GradientButton> 
+
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.bg[1],
+  },
+  image: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    padding: 10,
+  },
   buttonContainer: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 16,
     paddingHorizontal: 16,
-    width: "100%",
+    width: '100%',
   },
-  captionInput: {
-    backgroundColor: colors.bg[2],
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
+  button: {
+    position: 'absolute',
+    bottom: 16,
+    paddingHorizontal: 16,
+    width: '90%',
+    alignSelf: 'center',
+  }, 
+  buttonText: {
     color: colors.text[1],
     fontSize: 16,
-    minHeight: 80,
-    textAlignVertical: 'top',
+    fontWeight: 'bold',
   },
 });

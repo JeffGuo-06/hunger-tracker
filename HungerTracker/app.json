@@ -8,6 +8,7 @@
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "main": "expo-router/entry",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.jeffguo.HungerTracker",
@@ -49,7 +50,8 @@
         {
           "contactsPermission": "Allow Muckd to access your contacts to find friends who are already using the app."
         }
-      ]
+      ],
+      "react-native-vision-camera"
     ],
     "experiments": {
       "typedRoutes": true

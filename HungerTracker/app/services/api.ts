@@ -66,7 +66,7 @@ api.interceptors.response.use(
       await AsyncStorage.removeItem("refreshToken");
 
       // Redirect to login page
-      router.replace("/(auth)/login");
+      router.replace("/(onboarding)/hero1");
       throw new Error("Session expired. Please login again.");
     }
 

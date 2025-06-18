@@ -6,25 +6,33 @@ import { useEffect, useState } from "react";
 import { posts } from "../services/api";
 import { Ionicons } from "@expo/vector-icons";
 
+interface Comment {
+  id: string;
+  user: {
+    id: number;
+    username: string;
+    first_name: string;
+    last_name: string;
+    profile_image?: string;
+  };
+  content: string;
+  created_at: string;
+}
+
 interface PostData {
   id: string;
   user: {
-    name: string;
-    profileImage: string;
+    id: number;
+    username: string;
+    first_name: string;
+    last_name: string;
+    profile_image?: string;
   };
   image: string;
   caption: string;
   created_at: string;
   comments_count: number;
-  comments: {
-    id: string;
-    user: {
-      name: string;
-      profileImage: string;
-    };
-    content: string;
-    created_at: string;
-  }[];
+  comments?: Comment[];
 }
 
 export default function Feed() {
@@ -40,22 +48,7 @@ export default function Feed() {
     try {
       setLoading(true);
       const response = await posts.getAll();
-      // Transform the posts to match the expected format
-      const transformedPosts = response.map((post: any) => ({
-        ...post,
-        user: {
-          name: `${post.user.first_name} ${post.user.last_name}`,
-          profileImage: post.user.profile_image || undefined,
-        },
-        comments: post.comments?.map((comment: any) => ({
-          ...comment,
-          user: {
-            name: `${comment.user.first_name} ${comment.user.last_name}`,
-            profileImage: comment.user.profile_image || undefined,
-          },
-        })) || [],
-      }));
-      setFeedPosts(transformedPosts);
+      setFeedPosts(response);
     } catch (err) {
       setError('Failed to load posts');
       console.error('Error fetching posts:', err);
