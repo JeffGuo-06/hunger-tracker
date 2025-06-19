@@ -119,7 +119,7 @@ export default function MotiveCreate() {
             <Ionicons name="people" size={24} color={colors.text[1]} />
             <Text style={styles.sectionTitle}>Invite Friends</Text>
           </View>
-          <ScrollView style={styles.friendsList}>
+          <View style={styles.friendsList}>
             {friends.map(friend => (
               <TouchableOpacity
                 key={friend.id}
@@ -135,7 +135,7 @@ export default function MotiveCreate() {
                 )}
               </TouchableOpacity>
             ))}
-          </ScrollView>
+          </View>
         </View>
       </ScrollView>
 

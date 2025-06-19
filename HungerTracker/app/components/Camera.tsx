@@ -17,7 +17,9 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS, useSharedValue } from "react-native-reanimated";
 import { SymbolView } from "expo-symbols";
 import { useRouter } from "expo-router";
-import { colors } from "../theme";
+import { colors, spacing, fontSizes } from "../theme";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function Camera() {
   const { hasPermission, requestPermission } = useCameraPermission();
@@ -148,11 +150,52 @@ export default function Camera() {
 
   if (!hasPermission) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.message}>
-          We need your permission to show the camera
-        </Text>
-        <Button onPress={requestPermission} title="grant permission" />
+      <View style={styles.permissionContainer}>
+        <View style={styles.permissionContent}>
+          <View style={styles.iconContainer}>
+            <View style={styles.iconCircle}>
+              <Ionicons name="camera" size={60} color={colors.acc.p1} />
+            </View>
+          </View>
+
+          <View style={styles.textContent}>
+            <Text style={styles.permissionTitle}>Camera Access</Text>
+            <Text style={styles.permissionSubtitle}>
+              We need camera access to help you capture and share your food moments
+            </Text>
+            
+            <View style={styles.features}>
+              <View style={styles.feature}>
+                <Ionicons name="checkmark-circle" size={24} color={colors.acc.p1} />
+                <Text style={styles.featureText}>Take photos of your meals</Text>
+              </View>
+              <View style={styles.feature}>
+                <Ionicons name="checkmark-circle" size={24} color={colors.acc.p1} />
+                <Text style={styles.featureText}>Share with friends</Text>
+              </View>
+              <View style={styles.feature}>
+                <Ionicons name="checkmark-circle" size={24} color={colors.acc.p1} />
+                <Text style={styles.featureText}>Track your eating habits</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.buttons}>
+            <TouchableOpacity 
+              style={styles.gradientButton}
+              onPress={requestPermission}
+            >
+              <LinearGradient
+                colors={colors.grad.p1}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.gradient}
+              >
+                <Text style={styles.buttonText}>Allow Access</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
     );
   }
@@ -373,5 +416,75 @@ const styles = StyleSheet.create({
   loadingImage: {
     width: "100%",
     height: "100%",
+  },
+  permissionContainer: {
+    flex: 1,
+    backgroundColor: colors.bg[1],
+  },
+  permissionContent: {
+    flex: 1,
+    paddingHorizontal: spacing.xl,
+    justifyContent: 'space-between',
+  },
+  iconContainer: {
+    alignItems: 'center',
+    marginTop: spacing.xl * 3,
+  },
+  iconCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: colors.bg[2],
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  textContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  permissionTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: colors.text[1],
+    textAlign: 'center',
+    marginBottom: spacing.md,
+  },
+  permissionSubtitle: {
+    fontSize: fontSizes.medium,
+    color: colors.text[2],
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: spacing.xl,
+  },
+  features: {
+    gap: spacing.md,
+  },
+  feature: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  featureText: {
+    color: colors.text[1],
+    fontSize: fontSizes.medium,
+    flex: 1,
+  },
+  buttons: {
+    paddingBottom: spacing.xl,
+  },
+  gradientButton: {
+    borderRadius: 12,
+  },
+  gradient: {
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+  },
+  buttonText: {
+    color: colors.buttonText,
+    fontSize: fontSizes.medium,
+    fontWeight: '600',
   },
 });

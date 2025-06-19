@@ -4,7 +4,7 @@
     "slug": "HungerTracker",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/muckd-icon-prototype1.png",
+    "icon": "./assets/images/muckd-icon-prototype2.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -37,7 +37,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/muckd-icon-prototype1.png",
+          "image": "./assets/images/muckd-icon-prototype2.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"

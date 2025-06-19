@@ -28,37 +28,37 @@ export default function Profile() {
   const EXAMPLE_POSTS = [
     {
       id: '1',
-      imageUrl: require('../../assets/images/muckd-icon-prototype1.png'),
+      imageUrl: require('../../assets/images/muckd-icon-prototype2.png'),
       comments: 5,
     },
     {
       id: '2',
-      imageUrl: require('../../assets/images/muckd-icon-prototype1.png'),
+      imageUrl: require('../../assets/images/muckd-icon-prototype2.png'),
       comments: 3,
     },
     {
       id: '3',
-      imageUrl: require('../../assets/images/muckd-icon-prototype1.png'),
+      imageUrl: require('../../assets/images/muckd-icon-prototype2.png'),
       comments: 2,
     },
     {
       id: '4',
-      imageUrl: require('../../assets/images/muckd-icon-prototype1.png'),
+      imageUrl: require('../../assets/images/muckd-icon-prototype2.png'),
       comments: 4,
     },
     {
       id: '5',
-      imageUrl: require('../../assets/images/muckd-icon-prototype1.png'),
+      imageUrl: require('../../assets/images/muckd-icon-prototype2.png'),
       comments: 1,
     },
     {
       id: '6',
-      imageUrl: require('../../assets/images/muckd-icon-prototype1.png'),
+      imageUrl: require('../../assets/images/muckd-icon-prototype2.png'),
       comments: 3,
     },
     {
       id: '7',
-      imageUrl: require('../../assets/images/muckd-icon-prototype1.png'),
+      imageUrl: require('../../assets/images/muckd-icon-prototype2.png'),
       comments: 3,
     },
   ];

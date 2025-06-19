@@ -22,19 +22,19 @@ const slides = [
     id: '1',
     title: 'Track Your Meals',
     description: 'Keep a record of your favorite dishes and discover new ones.',
-    image: require('../../assets/images/muckd-icon-prototype1.png'),
+    image: require('../../assets/images/muckd-icon-prototype2.png'),
   },
   {
     id: '2',
     title: 'Share with Friends',
     description: 'Connect with friends and share your food journey.',
-    image: require('../../assets/images/muckd-icon-prototype1.png'),
+    image: require('../../assets/images/muckd-icon-prototype2.png'),
   },
   {
     id: '3',
     title: 'Discover New Spots',
     description: 'Find the best restaurants and food spots around you.',
-    image: require('../../assets/images/muckd-icon-prototype1.png'),
+    image: require('../../assets/images/muckd-icon-prototype2.png'),
   },
 ];
 
